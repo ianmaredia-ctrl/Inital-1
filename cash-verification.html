@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cash Verification | The-Palace</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main class="app-main">
+    <div class="page-container page-narrow">
+      <p class="page-lead">Reconcile the cash collected from machines against cash in hand.</p>
+      <div class="card-surface">
+        <div class="card-head">
+          <span class="stat-icon i-green" style="width:38px;height:38px"><svg viewBox="0 0 24 24" id="hi"></svg></span>
+          <h2>Cash Verification</h2>
+        </div>
+        <div class="card-body">
+          <form onsubmit="event.preventDefault(); App.demo()">
+            <div class="field-row">
+              <div class="mb-3">
+                <label class="form-label" for="storeName">Select Current Store</label>
+                <select class="form-select" id="storeName" required>
+                  <option value="">Open this select menu</option>
+                  <option value="THEPALACE">THEPALACE</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="todaysDate">Select Today's Date</label>
+                <input type="date" class="form-control" id="todaysDate" required>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="totalCash">Total Cash received from all machines</label>
+              <input type="number" class="form-control" id="totalCash" min="0" step="0.01" placeholder="Total cash from machines" required>
+            </div>
+            <div class="mb-4">
+              <label class="form-label" for="cashAftExp">Cash in hand after deduction</label>
+              <input type="number" class="form-control" id="cashAftExp" min="0" step="0.01" placeholder="Cash in hand after deduction" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/shared.js"></script>
+  <script>
+    App.initShell({ active: 'cash', title: 'Cash Verification' });
+    document.getElementById('hi').innerHTML = App.svg('check').replace(/<svg[^>]*>|<\/svg>/g,'');
+  </script>
+</body>
+</html>
