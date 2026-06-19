@@ -1,0 +1,274 @@
+/* ============================================================
+   GameManager – Shared Stylesheet
+   ============================================================ */
+
+/* ---------- Google Fonts ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Monoton&family=Montserrat:wght@400;600;700&family=Raleway:wght@400;600;700&display=swap');
+
+/* ---------- Base ---------- */
+body {
+  font-family: 'Montserrat', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- Navbar ---------- */
+.navbar-brand {
+  font-family: 'Monoton', cursive;
+  letter-spacing: 2px;
+  font-size: 1.1rem;
+  color: #fff !important;
+}
+
+.navbar-custom {
+  background-color: #404040 !important;
+}
+
+.navbar-custom .nav-link {
+  color: rgba(255, 255, 255, 0.85) !important;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Raleway', sans-serif;
+  font-size: 0.9rem;
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link.active {
+  color: #fff !important;
+}
+
+.navbar-custom .nav-link svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.username-display {
+  font-weight: 700;
+  color: #fff !important;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* ---------- Table header blue ---------- */
+.table-header-blue th {
+  background-color: #0b5ed7 !important;
+  color: #fff !important;
+}
+
+/* Also apply when the class is directly on a th */
+th.table-header-blue {
+  background-color: #0b5ed7 !important;
+  color: #fff !important;
+}
+
+/* ---------- Popup Backdrop ---------- */
+#popupBackdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.55);
+  z-index: 1040;
+}
+
+/* ---------- Detail View Popup ---------- */
+#detailPopup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1050;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  padding: 20px;
+  min-width: 340px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+#detailPopup.popup-large {
+  width: 95%;
+  height: 80%;
+  max-height: 80vh;
+  min-width: unset;
+}
+
+#detailPopup .popup-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #555;
+}
+
+#detailPopup .popup-close-btn:hover {
+  color: #000;
+}
+
+#detailPopup h5 {
+  margin-bottom: 16px;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+}
+
+.popup-field {
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+
+.popup-field label {
+  font-weight: 600;
+  display: inline-block;
+  min-width: 130px;
+  color: #444;
+}
+
+/* ---------- Camera Popup ---------- */
+#cameraPopup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1060;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  padding: 20px;
+  min-width: 360px;
+  text-align: center;
+}
+
+#cameraPopup .popup-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #555;
+}
+
+#cameraPopup .popup-close-btn:hover {
+  color: #000;
+}
+
+#cameraPopup h5 {
+  margin-bottom: 14px;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+}
+
+#cameraPopup video,
+#cameraPopup img#capturedImage {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ---------- Login Page ---------- */
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f0f0f0;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-card h2 {
+  font-family: 'Monoton', cursive;
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.login-card p {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+}
+
+/* ---------- Index / Home Page ---------- */
+.home-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 56px);
+  background: #f0f0f0;
+}
+
+.home-brand {
+  font-family: 'Monoton', cursive;
+  font-size: 3rem;
+  color: #404040;
+  letter-spacing: 4px;
+  text-align: center;
+}
+
+/* ---------- General Page Padding ---------- */
+.page-content {
+  padding: 20px;
+}
+
+/* ---------- Report Page ---------- */
+.report-info-bar {
+  background: #e9ecef;
+  border-radius: 4px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+/* ---------- DataTables overrides ---------- */
+.dataTables_wrapper .dataTables_filter input {
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+/* ---------- Camera display image ---------- */
+.captured-display-img {
+  max-width: 120px;
+  max-height: 80px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 6px;
+  display: none;
+}
