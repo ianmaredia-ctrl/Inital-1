@@ -7,323 +7,445 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --blue:   #007AFF;
+      --green:  #34C759;
+      --yellow: #FF9F0A;
+      --red:    #FF3B30;
+      --bg:     #F5F5F7;
+      --surface: rgba(255,255,255,0.82);
+      --surface-solid: #ffffff;
+      --label:  #1d1d1f;
+      --label2: #6e6e73;
+      --label3: #aeaeb2;
+      --sep:    rgba(0,0,0,0.08);
+      --input-bg: rgba(0,0,0,0.04);
+      --radius: 18px;
+      --radius-sm: 12px;
+    }
+
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #f0f4ff;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem 1rem;
-      color: #1e293b;
+      padding: 3.5rem 1.25rem 4rem;
+      color: var(--label);
+      -webkit-font-smoothing: antialiased;
     }
 
-    header {
+    /* ── HERO ── */
+    .hero {
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 3rem;
     }
-    header h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #3b4fd8;
-    }
-    header p {
-      margin-top: 0.4rem;
-      color: #64748b;
-      font-size: 0.95rem;
-    }
-
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(59,79,216,0.10);
-      padding: 1.75rem;
-      width: 100%;
-      max-width: 680px;
-      margin-bottom: 1.25rem;
-    }
-
-    .card h2 {
-      font-size: 1rem;
+    .hero-eyebrow {
+      font-size: 0.78rem;
       font-weight: 600;
-      color: #3b4fd8;
-      margin-bottom: 1rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 0.6rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 6vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--label);
+      line-height: 1.08;
+    }
+    .hero p {
+      margin-top: 0.7rem;
+      font-size: 1.05rem;
+      color: var(--label2);
+      font-weight: 400;
+    }
+
+    /* ── GPA HERO CARD ── */
+    .gpa-hero {
+      width: 100%;
+      max-width: 660px;
+      border-radius: var(--radius);
+      background: linear-gradient(145deg, #1c1c1e 0%, #2c2c2e 100%);
+      padding: 2.5rem 2.5rem 2rem;
+      margin-bottom: 1.25rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.22), 0 4px 16px rgba(0,0,0,0.12);
+    }
+    .gpa-hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 240px; height: 240px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,122,255,0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .gpa-hero-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 0.4rem;
+    }
+    .gpa-number {
+      font-size: clamp(4rem, 14vw, 6rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      color: #ffffff;
+      line-height: 1;
+      transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .gpa-number.placeholder { color: rgba(255,255,255,0.2); }
+    .gpa-subtitle {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 0.35rem;
+    }
+    .gpa-stats-row {
+      display: flex;
+      gap: 2rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .gpa-stat-val {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+    .gpa-stat-lbl {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 0.1rem;
       text-transform: uppercase;
       letter-spacing: 0.06em;
     }
 
-    /* Add course form */
-    .form-row {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1.4fr auto;
-      gap: 0.6rem;
-      align-items: end;
-    }
-
-    .field label {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: #64748b;
-      margin-bottom: 0.3rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .field input, .field select {
-      width: 100%;
-      padding: 0.55rem 0.75rem;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      color: #1e293b;
-      background: #f8fafc;
-      transition: border-color 0.15s;
-      outline: none;
-    }
-    .field input:focus, .field select:focus {
-      border-color: #3b4fd8;
-      background: #fff;
-    }
-
-    .btn-add {
-      padding: 0.55rem 1.1rem;
-      background: #3b4fd8;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.3rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.15s;
-      height: 38px;
-    }
-    .btn-add:hover { background: #2d3fba; }
-
-    /* Grade input hint */
-    .grade-hint {
-      font-size: 0.72rem;
-      color: #94a3b8;
-      margin-top: 0.25rem;
-    }
-
-    /* Courses table */
-    .courses-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 0.5rem;
-    }
-    .courses-table th {
-      text-align: left;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 0.4rem 0.5rem;
-      border-bottom: 1.5px solid #e2e8f0;
-    }
-    .courses-table td {
-      padding: 0.65rem 0.5rem;
-      font-size: 0.93rem;
-      border-bottom: 1px solid #f1f5f9;
-      vertical-align: middle;
-    }
-    .courses-table tr:last-child td { border-bottom: none; }
-
-    .badge {
-      display: inline-block;
-      padding: 0.2rem 0.55rem;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-    .badge-A  { background: #d1fae5; color: #065f46; }
-    .badge-B  { background: #dbeafe; color: #1e40af; }
-    .badge-C  { background: #fef9c3; color: #854d0e; }
-    .badge-D  { background: #ffedd5; color: #9a3412; }
-    .badge-F  { background: #fee2e2; color: #991b1b; }
-
-    .btn-remove {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #cbd5e1;
-      font-size: 1.1rem;
-      transition: color 0.15s;
-    }
-    .btn-remove:hover { color: #ef4444; }
-
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 2rem;
-      color: #94a3b8;
-      font-size: 0.9rem;
-    }
-
-    /* GPA result */
-    .gpa-result {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .gpa-number {
-      font-size: 3.5rem;
-      font-weight: 800;
-      color: #3b4fd8;
-      line-height: 1;
-    }
-    .gpa-label {
-      font-size: 0.85rem;
-      color: #64748b;
-      margin-top: 0.25rem;
-    }
-    .gpa-stats {
-      display: flex;
-      gap: 1.5rem;
-    }
-    .stat { text-align: center; }
-    .stat-value { font-size: 1.4rem; font-weight: 700; color: #1e293b; }
-    .stat-label { font-size: 0.75rem; color: #94a3b8; margin-top: 0.1rem; }
-
-    /* Progress bar */
+    /* Progress ring inside hero */
     .gpa-bar-wrap {
-      margin-top: 1.25rem;
-      background: #f1f5f9;
+      margin-top: 1.5rem;
+      background: rgba(255,255,255,0.1);
       border-radius: 999px;
-      height: 12px;
+      height: 4px;
       overflow: hidden;
     }
     .gpa-bar {
       height: 100%;
       border-radius: 999px;
-      transition: width 0.4s ease, background 0.4s ease;
+      transition: width 0.6s cubic-bezier(0.65,0,0.35,1), background 0.4s ease;
     }
 
-    /* Scale reference */
-    .scale-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: 0.5rem;
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.7);
+      box-shadow: 0 2px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+      padding: 1.75rem 1.75rem;
+      width: 100%;
+      max-width: 660px;
+      margin-bottom: 1.25rem;
     }
-    .scale-item {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 0.5rem 0.75rem;
-      font-size: 0.83rem;
+    .card-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--label3);
+      margin-bottom: 1.25rem;
     }
-    .scale-item strong { color: #3b4fd8; }
 
-    /* Actions */
-    .actions {
+    /* ── FORM ── */
+    .form-stack {
       display: flex;
+      flex-direction: column;
       gap: 0.75rem;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1.4fr;
+      gap: 0.75rem;
+    }
+    .field label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--label2);
+      margin-bottom: 0.35rem;
+      letter-spacing: 0.02em;
+    }
+    .field input {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      background: var(--input-bg);
+      border: 1.5px solid transparent;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--label);
+      outline: none;
+      transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+    }
+    .field input::placeholder { color: var(--label3); }
+    .field input:focus {
+      border-color: var(--blue);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(0,122,255,0.12);
+    }
+    .grade-hint {
+      font-size: 0.7rem;
+      color: var(--label3);
+      margin-top: 0.28rem;
+    }
+    .btn-add {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      letter-spacing: -0.01em;
+      transition: opacity 0.15s, transform 0.12s;
+    }
+    .btn-add:hover  { opacity: 0.88; }
+    .btn-add:active { transform: scale(0.98); opacity: 0.8; }
+
+    .error-msg {
+      font-size: 0.8rem;
+      color: var(--red);
+      display: none;
+      margin-top: 0.4rem;
+    }
+
+    /* ── COURSE LIST ── */
+    .course-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.9rem 0;
+      border-bottom: 1px solid var(--sep);
+      animation: fadeSlideIn 0.22s cubic-bezier(0.34,1.2,0.64,1) both;
+    }
+    .course-row:last-child { border-bottom: none; }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .course-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .icon-A { background: #d1fae5; color: #065f46; }
+    .icon-B { background: #dbeafe; color: #1d4ed8; }
+    .icon-C { background: #fef3c7; color: #92400e; }
+    .icon-D { background: #ffedd5; color: #9a3412; }
+    .icon-F { background: #fee2e2; color: #991b1b; }
+
+    .course-meta { flex: 1; min-width: 0; }
+    .course-name {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--label);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .course-detail {
+      font-size: 0.78rem;
+      color: var(--label2);
+      margin-top: 0.1rem;
+    }
+    .course-pts {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--label);
+      min-width: 36px;
+      text-align: right;
+    }
+    .btn-remove {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--input-bg);
+      border: none;
+      cursor: pointer;
+      color: var(--label3);
+      font-size: 0.8rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-remove:hover { background: #fee2e2; color: var(--red); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--label3);
+    }
+    .empty-icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.6rem;
+      opacity: 0.5;
+    }
+    .empty-state p { font-size: 0.88rem; }
+
+    /* ── ACTIONS ── */
+    .list-footer {
+      display: flex;
       justify-content: flex-end;
-      margin-top: 0.75rem;
+      margin-top: 1rem;
     }
     .btn-clear {
-      padding: 0.5rem 1.2rem;
-      background: #f1f5f9;
-      color: #64748b;
+      font-size: 0.83rem;
+      font-weight: 500;
+      font-family: inherit;
+      color: var(--red);
+      background: none;
       border: none;
-      border-radius: 8px;
-      font-size: 0.88rem;
       cursor: pointer;
-      transition: background 0.15s;
+      padding: 0.3rem 0.1rem;
+      transition: opacity 0.15s;
     }
-    .btn-clear:hover { background: #e2e8f0; }
+    .btn-clear:hover { opacity: 0.65; }
 
-    @media (max-width: 520px) {
+    /* ── SCALE REFERENCE ── */
+    .scale-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 0.6rem;
+    }
+    .scale-item {
+      background: var(--input-bg);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.85rem;
+      font-size: 0.8rem;
+      color: var(--label2);
+      line-height: 1.5;
+    }
+    .scale-item strong {
+      display: block;
+      font-size: 0.88rem;
+      color: var(--label);
+      margin-bottom: 0.05rem;
+    }
+    .scale-pts {
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 500px) {
+      body { padding: 2rem 1rem 3rem; }
       .form-row { grid-template-columns: 1fr 1fr; }
-      .form-row .btn-add { grid-column: span 2; width: 100%; height: 42px; }
-      .gpa-number { font-size: 2.8rem; }
+      .gpa-hero  { padding: 2rem 1.5rem 1.5rem; }
+      .gpa-number { font-size: 4rem; }
     }
   </style>
 </head>
 <body>
 
-  <header>
+  <div class="hero">
+    <div class="hero-eyebrow">Academic Tools</div>
     <h1>GPA Calculator</h1>
-    <p>Add your courses below to calculate your GPA instantly.</p>
-  </header>
+    <p>Track your courses and see your GPA update in real time.</p>
+  </div>
+
+  <!-- GPA Hero -->
+  <div class="gpa-hero">
+    <div class="gpa-hero-label">Cumulative GPA</div>
+    <div class="gpa-number placeholder" id="gpaDisplay">—</div>
+    <div class="gpa-subtitle">4.0 Scale</div>
+    <div class="gpa-bar-wrap">
+      <div class="gpa-bar" id="gpaBar" style="width:0%;background:var(--blue);"></div>
+    </div>
+    <div class="gpa-stats-row">
+      <div>
+        <div class="gpa-stat-val" id="totalCredits">0</div>
+        <div class="gpa-stat-lbl">Credits</div>
+      </div>
+      <div>
+        <div class="gpa-stat-val" id="totalCourses">0</div>
+        <div class="gpa-stat-lbl">Courses</div>
+      </div>
+      <div>
+        <div class="gpa-stat-val" id="qualityPts">0.00</div>
+        <div class="gpa-stat-lbl">Quality Points</div>
+      </div>
+    </div>
+  </div>
 
   <!-- Add Course -->
   <div class="card">
-    <h2>Add a Course</h2>
-    <div class="form-row">
-      <div class="field">
-        <label>Course Name</label>
-        <input id="courseName" type="text" placeholder="e.g. Calculus I" />
+    <div class="card-title">Add a Course</div>
+    <div class="form-stack">
+      <div class="form-row">
+        <div class="field">
+          <label>Course Name</label>
+          <input id="courseName" type="text" placeholder="e.g. Calculus I" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Credits</label>
+          <input id="credits" type="number" min="0.5" max="12" step="0.5" placeholder="3" />
+        </div>
+        <div class="field">
+          <label>Grade</label>
+          <input id="grade" type="text" placeholder="A, B+, 85%, 92…" autocomplete="off" />
+          <div class="grade-hint">Letter grade or percentage</div>
+        </div>
       </div>
-      <div class="field">
-        <label>Credits</label>
-        <input id="credits" type="number" min="0.5" max="12" step="0.5" placeholder="3" />
-      </div>
-      <div class="field">
-        <label>Grade</label>
-        <input id="grade" type="text" placeholder="A, B+, 85%, 92..." />
-        <div class="grade-hint">Letter (A, B+, C-…) or percent (85%)</div>
-      </div>
-      <button class="btn-add" onclick="addCourse()" title="Add course">+</button>
+      <button class="btn-add" onclick="addCourse()">Add Course</button>
     </div>
-    <div id="inputError" style="color:#ef4444;font-size:0.82rem;margin-top:0.5rem;display:none;"></div>
+    <div class="error-msg" id="inputError"></div>
   </div>
 
   <!-- Course List -->
   <div class="card">
-    <h2>Your Courses</h2>
+    <div class="card-title">Courses</div>
     <div id="courseList">
-      <div class="empty-state">No courses added yet. Add your first course above.</div>
+      <div class="empty-state">
+        <div class="empty-icon">📚</div>
+        <p>No courses yet. Add your first course above.</p>
+      </div>
     </div>
-    <div class="actions">
+    <div class="list-footer">
       <button class="btn-clear" onclick="clearAll()">Clear All</button>
     </div>
   </div>
 
-  <!-- GPA Result -->
+  <!-- Grade Scale -->
   <div class="card">
-    <h2>Your GPA</h2>
-    <div class="gpa-result">
-      <div>
-        <div class="gpa-number" id="gpaDisplay">—</div>
-        <div class="gpa-label">Cumulative GPA (4.0 scale)</div>
-      </div>
-      <div class="gpa-stats">
-        <div class="stat">
-          <div class="stat-value" id="totalCredits">0</div>
-          <div class="stat-label">Total Credits</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value" id="totalCourses">0</div>
-          <div class="stat-label">Courses</div>
-        </div>
-      </div>
-    </div>
-    <div class="gpa-bar-wrap">
-      <div class="gpa-bar" id="gpaBar" style="width:0%;background:#3b4fd8;"></div>
-    </div>
-  </div>
-
-  <!-- Grade Scale Reference -->
-  <div class="card">
-    <h2>Grade Scale Reference</h2>
+    <div class="card-title">Grade Scale Reference</div>
     <div class="scale-grid">
-      <div class="scale-item"><strong>A+ / A</strong><br>97–100% → 4.0</div>
-      <div class="scale-item"><strong>A−</strong><br>90–96% → 3.7</div>
-      <div class="scale-item"><strong>B+</strong><br>87–89% → 3.3</div>
-      <div class="scale-item"><strong>B</strong><br>83–86% → 3.0</div>
-      <div class="scale-item"><strong>B−</strong><br>80–82% → 2.7</div>
-      <div class="scale-item"><strong>C+</strong><br>77–79% → 2.3</div>
-      <div class="scale-item"><strong>C</strong><br>73–76% → 2.0</div>
-      <div class="scale-item"><strong>C−</strong><br>70–72% → 1.7</div>
-      <div class="scale-item"><strong>D+</strong><br>67–69% → 1.3</div>
-      <div class="scale-item"><strong>D</strong><br>63–66% → 1.0</div>
-      <div class="scale-item"><strong>D−</strong><br>60–62% → 0.7</div>
-      <div class="scale-item"><strong>F</strong><br>0–59% → 0.0</div>
+      <div class="scale-item"><strong>A+ / A</strong>97–100% &nbsp;<span class="scale-pts">4.0</span></div>
+      <div class="scale-item"><strong>A−</strong>90–96% &nbsp;<span class="scale-pts">3.7</span></div>
+      <div class="scale-item"><strong>B+</strong>87–89% &nbsp;<span class="scale-pts">3.3</span></div>
+      <div class="scale-item"><strong>B</strong>83–86% &nbsp;<span class="scale-pts">3.0</span></div>
+      <div class="scale-item"><strong>B−</strong>80–82% &nbsp;<span class="scale-pts">2.7</span></div>
+      <div class="scale-item"><strong>C+</strong>77–79% &nbsp;<span class="scale-pts">2.3</span></div>
+      <div class="scale-item"><strong>C</strong>73–76% &nbsp;<span class="scale-pts">2.0</span></div>
+      <div class="scale-item"><strong>C−</strong>70–72% &nbsp;<span class="scale-pts">1.7</span></div>
+      <div class="scale-item"><strong>D+</strong>67–69% &nbsp;<span class="scale-pts">1.3</span></div>
+      <div class="scale-item"><strong>D</strong>63–66% &nbsp;<span class="scale-pts">1.0</span></div>
+      <div class="scale-item"><strong>D−</strong>60–62% &nbsp;<span class="scale-pts">0.7</span></div>
+      <div class="scale-item"><strong>F</strong>0–59% &nbsp;<span class="scale-pts">0.0</span></div>
     </div>
   </div>
 
@@ -337,7 +459,6 @@
     };
 
     function percentToPoints(p) {
-      if (p >= 97) return 4.0;
       if (p >= 93) return 4.0;
       if (p >= 90) return 3.7;
       if (p >= 87) return 3.3;
@@ -369,27 +490,21 @@
     }
 
     function parseGrade(raw) {
-      const s = raw.trim().toUpperCase().replace('−', '-');
-
-      // Percentage input: "85", "85%", "85.5%"
+      const s = raw.trim().toUpperCase().replace(/[−–]/g, '-');
       const pctMatch = s.match(/^(\d+(\.\d+)?)%?$/);
       if (pctMatch) {
         const pct = parseFloat(pctMatch[1]);
         if (pct < 0 || pct > 100) return null;
         return { points: percentToPoints(pct), letter: percentToLetter(pct), display: pct + '%' };
       }
-
-      // Letter grade input
-      if (GRADE_MAP.hasOwnProperty(s)) {
+      if (Object.prototype.hasOwnProperty.call(GRADE_MAP, s)) {
         return { points: GRADE_MAP[s], letter: s, display: s };
       }
-
       return null;
     }
 
-    function badgeClass(letter) {
-      const l = letter[0];
-      return 'badge badge-' + (l === 'F' ? 'F' : l);
+    function iconClass(letter) {
+      return 'course-icon icon-' + (letter[0] === 'F' ? 'F' : letter[0]);
     }
 
     let courses = [];
@@ -401,22 +516,21 @@
     }
 
     function addCourse() {
-      const name    = document.getElementById('courseName').value.trim();
-      const credits = parseFloat(document.getElementById('credits').value);
+      const name     = document.getElementById('courseName').value.trim();
+      const credits  = parseFloat(document.getElementById('credits').value);
       const gradeRaw = document.getElementById('grade').value;
 
-      if (!name)            return showError('Please enter a course name.');
+      if (!name)               return showError('Please enter a course name.');
       if (!credits || credits <= 0) return showError('Please enter a valid credit value.');
       const parsed = parseGrade(gradeRaw);
-      if (!parsed)          return showError('Invalid grade. Use a letter grade (A, B+, C−) or a percentage (85, 90%).');
+      if (!parsed)             return showError('Use a letter grade (A, B+, C−) or a percentage (85%).');
 
       showError('');
       courses.push({ name, credits, ...parsed, id: Date.now() });
       document.getElementById('courseName').value = '';
-      document.getElementById('credits').value = '';
-      document.getElementById('grade').value = '';
+      document.getElementById('credits').value    = '';
+      document.getElementById('grade').value      = '';
       document.getElementById('courseName').focus();
-
       render();
     }
 
@@ -426,7 +540,7 @@
     }
 
     function clearAll() {
-      if (courses.length === 0) return;
+      if (!courses.length) return;
       courses = [];
       render();
     }
@@ -434,65 +548,67 @@
     function render() {
       const list = document.getElementById('courseList');
 
-      if (courses.length === 0) {
-        list.innerHTML = '<div class="empty-state">No courses added yet. Add your first course above.</div>';
-        document.getElementById('gpaDisplay').textContent = '—';
-        document.getElementById('totalCredits').textContent = '0';
-        document.getElementById('totalCourses').textContent = '0';
-        document.getElementById('gpaBar').style.width = '0%';
+      if (!courses.length) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📚</div>
+            <p>No courses yet. Add your first course above.</p>
+          </div>`;
+        setGPA(null, 0, 0, 0);
         return;
       }
 
-      // Build table
-      let rows = courses.map(c => `
-        <tr>
-          <td>${escHtml(c.name)}</td>
-          <td style="text-align:center">${c.credits}</td>
-          <td style="text-align:center"><span class="${badgeClass(c.letter)}">${c.letter}</span></td>
-          <td style="text-align:center">${c.points.toFixed(1)}</td>
-          <td style="text-align:center">${(c.points * c.credits).toFixed(2)}</td>
-          <td style="text-align:center">
-            <button class="btn-remove" onclick="removeCourse(${c.id})" title="Remove">✕</button>
-          </td>
-        </tr>
+      list.innerHTML = courses.map(c => `
+        <div class="course-row">
+          <div class="${iconClass(c.letter)}">${c.letter}</div>
+          <div class="course-meta">
+            <div class="course-name">${escHtml(c.name)}</div>
+            <div class="course-detail">${c.credits} credit${c.credits !== 1 ? 's' : ''} · ${c.display}</div>
+          </div>
+          <div class="course-pts">${(c.points * c.credits).toFixed(2)}</div>
+          <button class="btn-remove" onclick="removeCourse(${c.id})" title="Remove">✕</button>
+        </div>
       `).join('');
 
-      list.innerHTML = `
-        <table class="courses-table">
-          <thead>
-            <tr>
-              <th>Course</th>
-              <th style="text-align:center">Credits</th>
-              <th style="text-align:center">Grade</th>
-              <th style="text-align:center">Points</th>
-              <th style="text-align:center">Quality Pts</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-
-      // Compute GPA
       const totalCredits = courses.reduce((s, c) => s + c.credits, 0);
       const totalQuality = courses.reduce((s, c) => s + c.points * c.credits, 0);
       const gpa = totalCredits > 0 ? totalQuality / totalCredits : 0;
+      setGPA(gpa, totalCredits, courses.length, totalQuality);
+    }
 
-      document.getElementById('gpaDisplay').textContent = gpa.toFixed(2);
-      document.getElementById('totalCredits').textContent = totalCredits;
-      document.getElementById('totalCourses').textContent = courses.length;
+    function setGPA(gpa, credits, count, quality) {
+      const display = document.getElementById('gpaDisplay');
+      const bar     = document.getElementById('gpaBar');
+
+      if (gpa === null) {
+        display.textContent = '—';
+        display.classList.add('placeholder');
+        bar.style.width = '0%';
+        document.getElementById('totalCredits').textContent = '0';
+        document.getElementById('totalCourses').textContent = '0';
+        document.getElementById('qualityPts').textContent   = '0.00';
+        return;
+      }
+
+      display.textContent = gpa.toFixed(2);
+      display.classList.remove('placeholder');
 
       const pct = (gpa / 4.0) * 100;
-      const bar = document.getElementById('gpaBar');
       bar.style.width = pct + '%';
-      bar.style.background = gpa >= 3.5 ? '#22c55e' : gpa >= 3.0 ? '#3b82f6' : gpa >= 2.0 ? '#f59e0b' : '#ef4444';
+      bar.style.background =
+        gpa >= 3.5 ? 'var(--green)' :
+        gpa >= 3.0 ? 'var(--blue)'  :
+        gpa >= 2.0 ? 'var(--yellow)': 'var(--red)';
+
+      document.getElementById('totalCredits').textContent = credits;
+      document.getElementById('totalCourses').textContent = count;
+      document.getElementById('qualityPts').textContent   = quality.toFixed(2);
     }
 
     function escHtml(s) {
       return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    // Allow Enter key to add course
     ['courseName','credits','grade'].forEach(id => {
       document.getElementById(id).addEventListener('keydown', e => {
         if (e.key === 'Enter') addCourse();
