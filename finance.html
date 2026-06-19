@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Finance</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:    #007AFF;
+      --green:   #34C759;
+      --yellow:  #FF9F0A;
+      --red:     #FF3B30;
+      --purple:  #5856D6;
+      --bg:      #F5F5F7;
+      --surface: rgba(255,255,255,0.82);
+      --surface-solid: #ffffff;
+      --label:   #1d1d1f;
+      --label2:  #6e6e73;
+      --label3:  #aeaeb2;
+      --sep:     rgba(0,0,0,0.08);
+      --input-bg: rgba(0,0,0,0.04);
+      --radius:   18px;
+      --radius-sm: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.25rem 4rem;
+      color: var(--label);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── APP NAV ── */
+    .app-nav {
+      display: flex;
+      gap: 0.4rem;
+      background: rgba(0,0,0,0.06);
+      border-radius: 999px;
+      padding: 4px;
+      margin-bottom: 2.5rem;
+    }
+    .app-nav a {
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.4rem 1.1rem;
+      border-radius: 999px;
+      color: var(--label2);
+      transition: all 0.2s ease;
+    }
+    .app-nav a.active {
+      background: var(--surface-solid);
+      color: var(--label);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.14);
+    }
+
+    /* ── HERO ── */
+    .hero { text-align: center; margin-bottom: 2rem; }
+    .hero-eyebrow {
+      font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--blue); margin-bottom: 0.6rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 6vw, 3.2rem);
+      font-weight: 700; letter-spacing: -0.03em;
+      color: var(--label); line-height: 1.08;
+    }
+    .hero p { margin-top: 0.7rem; font-size: 1.05rem; color: var(--label2); }
+
+    /* ── SEGMENTED CONTROL ── */
+    .seg-control {
+      display: flex;
+      background: rgba(0,0,0,0.06);
+      border-radius: 999px;
+      padding: 4px;
+      width: 100%; max-width: 660px;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    .seg-btn {
+      flex: 1; padding: 0.5rem 0.4rem;
+      border: none; background: transparent;
+      font-family: inherit; font-size: 0.83rem; font-weight: 600;
+      color: var(--label2); border-radius: 999px;
+      cursor: pointer; position: relative; z-index: 1;
+      transition: color 0.2s ease;
+    }
+    .seg-btn.active { color: var(--label); }
+    .seg-thumb {
+      position: absolute; top: 4px;
+      height: calc(100% - 8px);
+      background: var(--surface-solid);
+      border-radius: 999px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.14);
+      transition: left 0.28s cubic-bezier(0.65,0,0.35,1), width 0.28s cubic-bezier(0.65,0,0.35,1);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── TAB PANELS ── */
+    .tab-panel { display: none; width: 100%; max-width: 660px; }
+    .tab-panel.active { display: block; }
+
+    /* ── SUMMARY HERO (dark card) ── */
+    .summary-hero {
+      width: 100%; border-radius: var(--radius);
+      background: linear-gradient(145deg, #1c1c1e 0%, #2c2c2e 100%);
+      padding: 2.5rem 2.5rem 2rem;
+      margin-bottom: 1.25rem;
+      position: relative; overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.22), 0 4px 16px rgba(0,0,0,0.12);
+    }
+    .summary-hero .glow {
+      position: absolute; top: -60px; right: -60px;
+      width: 240px; height: 240px; border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero-lbl {
+      font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.45); margin-bottom: 0.4rem;
+    }
+    .hero-num {
+      font-size: clamp(3.5rem, 12vw, 5rem);
+      font-weight: 700; letter-spacing: -0.04em;
+      color: #fff; line-height: 1;
+      transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .hero-num.dim { color: rgba(255,255,255,0.2); }
+    .hero-sub { font-size: 0.88rem; color: rgba(255,255,255,0.4); margin-top: 0.35rem; }
+    .hero-bar-wrap {
+      margin-top: 1.5rem;
+      background: rgba(255,255,255,0.1);
+      border-radius: 999px; height: 4px; overflow: hidden;
+    }
+    .hero-bar {
+      height: 100%; border-radius: 999px;
+      transition: width 0.6s cubic-bezier(0.65,0,0.35,1), background 0.4s ease;
+    }
+    .hero-stats {
+      display: flex; gap: 2rem; flex-wrap: wrap;
+      margin-top: 2rem; padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .stat-val { font-size: 1.4rem; font-weight: 600; color: #fff; letter-spacing: -0.02em; }
+    .stat-lbl {
+      font-size: 0.7rem; color: rgba(255,255,255,0.4);
+      margin-top: 0.1rem; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.7);
+      box-shadow: 0 2px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+      padding: 1.75rem; width: 100%; margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--label3); margin-bottom: 1.25rem;
+    }
+
+    /* ── FORMS ── */
+    .form-stack { display: flex; flex-direction: column; gap: 0.75rem; }
+    .form-row   { display: grid; gap: 0.75rem; }
+    .f2 { grid-template-columns: 1fr 1fr; }
+    .f3 { grid-template-columns: 2fr 1fr 1fr; }
+    .field label {
+      display: block; font-size: 0.72rem; font-weight: 600;
+      color: var(--label2); margin-bottom: 0.35rem; letter-spacing: 0.02em;
+    }
+    .field input, .field select {
+      width: 100%; padding: 0.7rem 0.9rem;
+      background: var(--input-bg);
+      border: 1.5px solid transparent;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem; font-family: inherit;
+      color: var(--label); outline: none;
+      -webkit-appearance: none;
+      transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+    }
+    .field input::placeholder { color: var(--label3); }
+    .field input:focus, .field select:focus {
+      border-color: var(--blue); background: #fff;
+      box-shadow: 0 0 0 3px rgba(0,122,255,0.12);
+    }
+    .btn {
+      width: 100%; padding: 0.75rem;
+      color: #fff; border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem; font-weight: 600;
+      font-family: inherit; cursor: pointer;
+      letter-spacing: -0.01em;
+      transition: opacity 0.15s, transform 0.12s;
+    }
+    .btn:hover  { opacity: 0.88; }
+    .btn:active { transform: scale(0.98); opacity: 0.8; }
+    .btn-blue   { background: var(--blue); }
+    .btn-green  { background: var(--green); }
+    .btn-purple { background: var(--purple); }
+    .err {
+      font-size: 0.8rem; color: var(--red);
+      display: none; margin-top: 0.4rem;
+    }
+
+    /* ── PRESET CHIPS ── */
+    .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .chip {
+      padding: 0.35rem 0.85rem;
+      background: var(--input-bg); border: none;
+      border-radius: 999px; font-size: 0.8rem; font-weight: 500;
+      font-family: inherit; color: var(--label2);
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+    }
+    .chip:hover { background: rgba(0,122,255,0.1); color: var(--blue); }
+
+    /* ── LIST ROWS ── */
+    .list-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.9rem 0; border-bottom: 1px solid var(--sep);
+      animation: fadeUp 0.22s cubic-bezier(0.34,1.2,0.64,1) both;
+    }
+    .list-row:last-child { border-bottom: none; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .row-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; font-weight: 700; flex-shrink: 0;
+    }
+    .ic-green  { background: #d1fae5; color: #065f46; }
+    .ic-red    { background: #fee2e2; color: #991b1b; }
+    .ic-blue   { background: #dbeafe; color: #1d4ed8; }
+    .ic-purple { background: #ede9fe; color: #5b21b6; }
+    .row-meta  { flex: 1; min-width: 0; }
+    .row-name  {
+      font-size: 0.95rem; font-weight: 500; color: var(--label);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .row-detail { font-size: 0.78rem; color: var(--label2); margin-top: 0.1rem; }
+    .row-amt    { font-size: 0.95rem; font-weight: 600; color: var(--label); min-width: 72px; text-align: right; }
+    .btn-rm {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--input-bg); border: none;
+      cursor: pointer; color: var(--label3);
+      font-size: 0.8rem; display: flex;
+      align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background 0.15s, color 0.15s;
+    }
+    .btn-rm:hover { background: #fee2e2; color: var(--red); }
+    .list-footer { display: flex; justify-content: flex-end; margin-top: 1rem; }
+    .btn-clear {
+      font-size: 0.83rem; font-weight: 500; font-family: inherit;
+      color: var(--red); background: none; border: none;
+      cursor: pointer; padding: 0.3rem 0; transition: opacity 0.15s;
+    }
+    .btn-clear:hover { opacity: 0.65; }
+    .empty {
+      text-align: center; padding: 2rem 1rem; color: var(--label3);
+    }
+    .empty-icon { font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5; }
+    .empty p { font-size: 0.88rem; }
+
+    /* ── PROGRESS ── */
+    .prog-row { margin-bottom: 1rem; }
+    .prog-row:last-child { margin-bottom: 0; }
+    .prog-label {
+      display: flex; justify-content: space-between;
+      font-size: 0.83rem; margin-bottom: 0.35rem;
+    }
+    .prog-label span:first-child { font-weight: 500; color: var(--label); }
+    .prog-label span:last-child  { color: var(--label2); }
+    .prog-track { background: var(--input-bg); border-radius: 999px; height: 6px; overflow: hidden; }
+    .prog-fill  {
+      height: 100%; border-radius: 999px;
+      transition: width 0.5s cubic-bezier(0.65,0,0.35,1);
+    }
+
+    /* ── LOAN ── */
+    .split-bar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; margin: 0.75rem 0 0.5rem; }
+    .s-prin { transition: flex 0.5s ease; background: var(--blue); }
+    .s-int  { transition: flex 0.5s ease; background: var(--yellow); }
+    .split-legend { display: flex; gap: 1.25rem; font-size: 0.78rem; }
+    .leg-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.35rem; vertical-align: middle; }
+    .amort-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .amort-table th {
+      text-align: left; font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--label3); padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--sep);
+    }
+    .amort-table td {
+      padding: 0.65rem 0; border-bottom: 1px solid var(--sep); color: var(--label);
+    }
+    .amort-table tr:last-child td { border-bottom: none; }
+    .amort-table td:not(:first-child) { text-align: right; color: var(--label2); }
+    .amort-ellipsis td { text-align: center !important; color: var(--label3) !important; padding: 0.25rem 0; }
+
+    /* ── GOAL CARDS ── */
+    .goal-card {
+      background: var(--surface);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.7);
+      box-shadow: 0 2px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+      padding: 1.25rem 1.5rem; margin-bottom: 1rem;
+      animation: fadeUp 0.22s cubic-bezier(0.34,1.2,0.64,1) both;
+    }
+    .goal-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+    .goal-name { font-size: 1rem; font-weight: 600; color: var(--label); }
+    .goal-eta  { font-size: 0.78rem; color: var(--label2); margin-right: 0.5rem; }
+    .goal-amts { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--label2); margin-top: 0.5rem; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 520px) {
+      body { padding: 2rem 1rem 3rem; }
+      .summary-hero { padding: 2rem 1.5rem 1.5rem; }
+      .hero-num { font-size: 3rem; }
+      .f3 { grid-template-columns: 1fr 1fr; }
+      .seg-btn { font-size: 0.73rem; padding: 0.5rem 0.25rem; }
+      .hero-stats { gap: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="app-nav">
+    <a href="index.html">GPA</a>
+    <a href="finance.html" class="active">Finance</a>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-eyebrow">Student Tools</div>
+    <h1>Finance Planner</h1>
+    <p>Budget, loans, tuition &amp; savings — all in one place.</p>
+  </div>
+
+  <div class="seg-control" id="segCtrl">
+    <div class="seg-thumb" id="segThumb"></div>
+    <button class="seg-btn active" onclick="showTab('budget')">Budget</button>
+    <button class="seg-btn" onclick="showTab('loan')">Loans</button>
+    <button class="seg-btn" onclick="showTab('tuition')">Tuition</button>
+    <button class="seg-btn" onclick="showTab('savings')">Savings</button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       BUDGET
+  ══════════════════════════════════════ -->
+  <div class="tab-panel active" id="tab-budget">
+
+    <div class="summary-hero">
+      <div class="glow" style="background:radial-gradient(circle,rgba(52,199,89,0.22) 0%,transparent 70%);"></div>
+      <div class="hero-lbl">Monthly Net Balance</div>
+      <div class="hero-num dim" id="bNet">—</div>
+      <div class="hero-sub" id="bNetSub">Add income and expenses to begin</div>
+      <div class="hero-bar-wrap"><div class="hero-bar" id="bBar" style="width:0%;background:var(--green);"></div></div>
+      <div class="hero-stats">
+        <div><div class="stat-val" id="bIncome">$0</div><div class="stat-lbl">Income</div></div>
+        <div><div class="stat-val" id="bExpenses">$0</div><div class="stat-lbl">Expenses</div></div>
+        <div><div class="stat-val" id="bPct">—</div><div class="stat-lbl">Spent</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Add Income</div>
+      <div class="chips">
+        <button class="chip" onclick="fillIncome('Part-time Job',1200)">Part-time Job</button>
+        <button class="chip" onclick="fillIncome('Scholarship',500)">Scholarship</button>
+        <button class="chip" onclick="fillIncome('Family Support',800)">Family Support</button>
+        <button class="chip" onclick="fillIncome('Stipend',600)">Stipend</button>
+      </div>
+      <div class="form-stack">
+        <div class="form-row f2">
+          <div class="field"><label>Source</label><input id="iName" type="text" placeholder="e.g. Part-time Job" autocomplete="off" /></div>
+          <div class="field"><label>Monthly ($)</label><input id="iAmt" type="number" min="0" step="1" placeholder="1200" /></div>
+        </div>
+        <button class="btn btn-green" onclick="addIncome()">Add Income</button>
+      </div>
+      <div class="err" id="iErr"></div>
+    </div>
+
+    <div class="card" id="iCard" style="display:none;">
+      <div class="card-title">Income Sources</div>
+      <div id="iList"></div>
+      <div class="list-footer"><button class="btn-clear" onclick="income=[];renderBudget()">Clear All</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Add Expense</div>
+      <div class="chips">
+        <button class="chip" onclick="fillExpense('Rent',900)">Rent</button>
+        <button class="chip" onclick="fillExpense('Groceries',300)">Groceries</button>
+        <button class="chip" onclick="fillExpense('Tuition',1500)">Tuition</button>
+        <button class="chip" onclick="fillExpense('Textbooks',150)">Textbooks</button>
+        <button class="chip" onclick="fillExpense('Transportation',80)">Transportation</button>
+        <button class="chip" onclick="fillExpense('Utilities',120)">Utilities</button>
+        <button class="chip" onclick="fillExpense('Entertainment',100)">Entertainment</button>
+        <button class="chip" onclick="fillExpense('Dining Out',200)">Dining Out</button>
+      </div>
+      <div class="form-stack">
+        <div class="form-row f2">
+          <div class="field"><label>Category</label><input id="eName" type="text" placeholder="e.g. Rent" autocomplete="off" /></div>
+          <div class="field"><label>Monthly ($)</label><input id="eAmt" type="number" min="0" step="1" placeholder="900" /></div>
+        </div>
+        <button class="btn btn-blue" onclick="addExpense()">Add Expense</button>
+      </div>
+      <div class="err" id="eErr"></div>
+    </div>
+
+    <div class="card" id="eCard" style="display:none;">
+      <div class="card-title">Expenses &amp; Breakdown</div>
+      <div id="eList"></div>
+      <div id="eBreak" style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--sep);display:none;"></div>
+      <div class="list-footer"><button class="btn-clear" onclick="expenses=[];renderBudget()">Clear All</button></div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════
+       LOANS
+  ══════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-loan">
+
+    <div class="summary-hero">
+      <div class="glow" style="background:radial-gradient(circle,rgba(0,122,255,0.25) 0%,transparent 70%);"></div>
+      <div class="hero-lbl">Monthly Payment</div>
+      <div class="hero-num dim" id="lMonthly">—</div>
+      <div class="hero-sub">Enter loan details below to calculate</div>
+      <div class="hero-bar-wrap"><div class="hero-bar" id="lBar" style="width:0%;background:var(--blue);"></div></div>
+      <div class="hero-stats">
+        <div><div class="stat-val" id="lInterest">—</div><div class="stat-lbl">Total Interest</div></div>
+        <div><div class="stat-val" id="lCost">—</div><div class="stat-lbl">Total Cost</div></div>
+        <div><div class="stat-val" id="lPmts">—</div><div class="stat-lbl">Payments</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Loan Details</div>
+      <div class="form-stack">
+        <div class="form-row f2">
+          <div class="field"><label>Loan Amount ($)</label><input id="lAmt" type="number" min="0" step="100" placeholder="30000" /></div>
+          <div class="field"><label>Annual Interest Rate (%)</label><input id="lRate" type="number" min="0" step="0.01" placeholder="5.00" /></div>
+        </div>
+        <div class="form-row f2">
+          <div class="field"><label>Loan Term (years)</label><input id="lTerm" type="number" min="1" max="30" step="1" placeholder="10" /></div>
+          <div class="field"><label>Grace Period (months)</label><input id="lGrace" type="number" min="0" max="24" step="1" placeholder="6" /></div>
+        </div>
+        <button class="btn btn-blue" onclick="calcLoan()">Calculate</button>
+      </div>
+      <div class="err" id="lErr"></div>
+    </div>
+
+    <div class="card" id="lBreakCard" style="display:none;">
+      <div class="card-title">Principal vs Interest</div>
+      <div class="split-bar">
+        <div class="s-prin" id="sPrin" style="flex:1;"></div>
+        <div class="s-int"  id="sInt"  style="flex:0;"></div>
+      </div>
+      <div class="split-legend">
+        <div><span class="leg-dot" style="background:var(--blue);"></span>Principal <span id="sPrinPct" style="color:var(--label2);"></span></div>
+        <div><span class="leg-dot" style="background:var(--yellow);"></span>Interest <span id="sIntPct" style="color:var(--label2);"></span></div>
+      </div>
+    </div>
+
+    <div class="card" id="lAmortCard" style="display:none;">
+      <div class="card-title">Amortization Preview</div>
+      <table class="amort-table">
+        <thead><tr><th>Month</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead>
+        <tbody id="amortBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════
+       TUITION
+  ══════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-tuition">
+
+    <div class="summary-hero">
+      <div class="glow" style="background:radial-gradient(circle,rgba(0,122,255,0.25) 0%,transparent 70%);"></div>
+      <div class="hero-lbl">Out-of-Pocket (Per Semester)</div>
+      <div class="hero-num dim" id="tNet">—</div>
+      <div class="hero-sub">Tuition &amp; fees minus financial aid</div>
+      <div class="hero-bar-wrap"><div class="hero-bar" id="tBar" style="width:0%;background:var(--blue);"></div></div>
+      <div class="hero-stats">
+        <div><div class="stat-val" id="tGross">—</div><div class="stat-lbl">Gross / Semester</div></div>
+        <div><div class="stat-val" id="tAid">—</div><div class="stat-lbl">Aid / Semester</div></div>
+        <div><div class="stat-val" id="tAnnual">—</div><div class="stat-lbl">Annual Est.</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Add Cost Item</div>
+      <div class="chips">
+        <button class="chip" onclick="fillTuition('Tuition',5000,'semester')">Tuition</button>
+        <button class="chip" onclick="fillTuition('Activity Fee',150,'semester')">Activity Fee</button>
+        <button class="chip" onclick="fillTuition('Technology Fee',100,'semester')">Technology Fee</button>
+        <button class="chip" onclick="fillTuition('Health Insurance',600,'semester')">Health Insurance</button>
+        <button class="chip" onclick="fillTuition('Housing',3500,'semester')">Housing</button>
+        <button class="chip" onclick="fillTuition('Meal Plan',2000,'semester')">Meal Plan</button>
+        <button class="chip" onclick="fillTuition('Books &amp; Supplies',400,'semester')">Books &amp; Supplies</button>
+        <button class="chip" onclick="fillTuition('Parking Permit',200,'annual')">Parking Permit</button>
+      </div>
+      <div class="form-stack">
+        <div class="form-row f3">
+          <div class="field"><label>Item Name</label><input id="tName" type="text" placeholder="e.g. Tuition" autocomplete="off" /></div>
+          <div class="field"><label>Amount ($)</label><input id="tAmt" type="number" min="0" step="10" placeholder="5000" /></div>
+          <div class="field"><label>Per</label>
+            <select id="tPer">
+              <option value="semester">Semester</option>
+              <option value="annual">Annual</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-blue" onclick="addTuitionItem()">Add Item</button>
+      </div>
+      <div class="err" id="tErr"></div>
+    </div>
+
+    <div class="card" id="tListCard" style="display:none;">
+      <div class="card-title">Cost Breakdown</div>
+      <div id="tList"></div>
+      <div class="list-footer"><button class="btn-clear" onclick="tuitionItems=[];renderTuition()">Clear All</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Financial Aid &amp; Scholarships</div>
+      <div class="form-stack">
+        <div class="form-row f2">
+          <div class="field"><label>Aid Source</label><input id="aName" type="text" placeholder="e.g. Pell Grant" autocomplete="off" /></div>
+          <div class="field"><label>Per Semester ($)</label><input id="aAmt" type="number" min="0" step="10" placeholder="2500" /></div>
+        </div>
+        <button class="btn btn-green" onclick="addAid()">Add Aid</button>
+      </div>
+      <div class="err" id="aErr"></div>
+      <div id="aList" style="margin-top:1rem;"></div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SAVINGS
+  ══════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-savings">
+
+    <div class="summary-hero">
+      <div class="glow" style="background:radial-gradient(circle,rgba(88,86,214,0.28) 0%,transparent 70%);"></div>
+      <div class="hero-lbl">Total Saved</div>
+      <div class="hero-num dim" id="sTotal">—</div>
+      <div class="hero-sub" id="sSub">of your combined goals</div>
+      <div class="hero-bar-wrap"><div class="hero-bar" id="sBar" style="width:0%;background:var(--purple);"></div></div>
+      <div class="hero-stats">
+        <div><div class="stat-val" id="sTarget">—</div><div class="stat-lbl">Total Target</div></div>
+        <div><div class="stat-val" id="sRemain">—</div><div class="stat-lbl">Remaining</div></div>
+        <div><div class="stat-val" id="sCount">0</div><div class="stat-lbl">Goals</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Add Savings Goal</div>
+      <div class="chips">
+        <button class="chip" onclick="fillGoal('Emergency Fund',3000,0,150)">Emergency Fund</button>
+        <button class="chip" onclick="fillGoal('New Laptop',1200,0,100)">New Laptop</button>
+        <button class="chip" onclick="fillGoal('Spring Break',800,0,80)">Spring Break</button>
+        <button class="chip" onclick="fillGoal('Textbooks',400,0,50)">Textbooks</button>
+      </div>
+      <div class="form-stack">
+        <div class="field"><label>Goal Name</label><input id="gName" type="text" placeholder="e.g. Emergency Fund" autocomplete="off" /></div>
+        <div class="form-row f3">
+          <div class="field"><label>Target ($)</label><input id="gTarget" type="number" min="1" step="10" placeholder="3000" /></div>
+          <div class="field"><label>Already Saved ($)</label><input id="gSaved" type="number" min="0" step="10" placeholder="0" /></div>
+          <div class="field"><label>Monthly ($)</label><input id="gMonthly" type="number" min="1" step="10" placeholder="150" /></div>
+        </div>
+        <button class="btn btn-purple" onclick="addGoal()">Add Goal</button>
+      </div>
+      <div class="err" id="gErr"></div>
+    </div>
+
+    <div id="goalCards"></div>
+
+  </div>
+
+  <script>
+    /* ─── UTILS ─── */
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function fmt(n)  { return '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+    function fmt2(n) { return '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    function err(id,msg) { const el=document.getElementById(id); el.textContent=msg; el.style.display=msg?'block':'none'; }
+
+    /* ─── TABS ─── */
+    const TABS = ['budget','loan','tuition','savings'];
+    function showTab(name) {
+      TABS.forEach(t => document.getElementById('tab-'+t).classList.toggle('active', t===name));
+      document.querySelectorAll('.seg-btn').forEach((b,i) => b.classList.toggle('active', TABS[i]===name));
+      posThumb();
+    }
+    function posThumb() {
+      const ctrl  = document.getElementById('segCtrl');
+      const thumb = document.getElementById('segThumb');
+      const active = ctrl.querySelector('.seg-btn.active');
+      if (!active) return;
+      const cr = ctrl.getBoundingClientRect();
+      const br = active.getBoundingClientRect();
+      thumb.style.left  = (br.left - cr.left) + 'px';
+      thumb.style.width = br.width + 'px';
+    }
+    window.addEventListener('load', posThumb);
+    window.addEventListener('resize', posThumb);
+
+    /* ═══════════════════════════════════
+       BUDGET
+    ═══════════════════════════════════ */
+    let income=[], expenses=[], nextBid=1;
+
+    function fillIncome(n,a)  { document.getElementById('iName').value=n; document.getElementById('iAmt').value=a; }
+    function fillExpense(n,a) { document.getElementById('eName').value=n; document.getElementById('eAmt').value=a; }
+
+    function addIncome() {
+      const n=document.getElementById('iName').value.trim();
+      const a=parseFloat(document.getElementById('iAmt').value);
+      if (!n) return err('iErr','Please enter an income source name.');
+      if (!a||a<=0) return err('iErr','Please enter a valid amount.');
+      err('iErr','');
+      income.push({id:nextBid++,name:n,amt:a});
+      document.getElementById('iName').value=''; document.getElementById('iAmt').value='';
+      renderBudget();
+    }
+    function addExpense() {
+      const n=document.getElementById('eName').value.trim();
+      const a=parseFloat(document.getElementById('eAmt').value);
+      if (!n) return err('eErr','Please enter an expense category name.');
+      if (!a||a<=0) return err('eErr','Please enter a valid amount.');
+      err('eErr','');
+      expenses.push({id:nextBid++,name:n,amt:a});
+      document.getElementById('eName').value=''; document.getElementById('eAmt').value='';
+      renderBudget();
+    }
+    function rmIncome(id)  { income=income.filter(i=>i.id!==id);   renderBudget(); }
+    function rmExpense(id) { expenses=expenses.filter(i=>i.id!==id); renderBudget(); }
+
+    function renderBudget() {
+      const totalIn  = income.reduce((s,i)=>s+i.amt,0);
+      const totalOut = expenses.reduce((s,i)=>s+i.amt,0);
+      const net = totalIn - totalOut;
+      const netEl = document.getElementById('bNet');
+
+      if (!totalIn && !totalOut) {
+        netEl.textContent='—'; netEl.className='hero-num dim';
+        document.getElementById('bNetSub').textContent='Add income and expenses to begin';
+        document.getElementById('bBar').style.width='0%';
+      } else {
+        netEl.textContent=(net<0?'-':'')+fmt(net);
+        netEl.className='hero-num';
+        netEl.style.color=net>=0?'#fff':'#FF3B30';
+        document.getElementById('bNetSub').textContent=net>=0?'You are within budget':'You are over budget';
+        const pct=totalIn>0?Math.min(totalOut/totalIn,1)*100:100;
+        const bar=document.getElementById('bBar');
+        bar.style.width=pct+'%';
+        bar.style.background=net>=0?'var(--green)':'var(--red)';
+      }
+      document.getElementById('bIncome').textContent=fmt(totalIn);
+      document.getElementById('bExpenses').textContent=fmt(totalOut);
+      document.getElementById('bPct').textContent=totalIn>0?Math.round(totalOut/totalIn*100)+'%':'—';
+
+      // Income list
+      const iCard=document.getElementById('iCard');
+      iCard.style.display=income.length?'block':'none';
+      document.getElementById('iList').innerHTML=income.map(i=>`
+        <div class="list-row">
+          <div class="row-icon ic-green">+</div>
+          <div class="row-meta"><div class="row-name">${esc(i.name)}</div><div class="row-detail">Monthly income</div></div>
+          <div class="row-amt" style="color:var(--green);">${fmt(i.amt)}</div>
+          <button class="btn-rm" onclick="rmIncome(${i.id})">✕</button>
+        </div>`).join('');
+
+      // Expense list
+      const eCard=document.getElementById('eCard');
+      eCard.style.display=expenses.length?'block':'none';
+      document.getElementById('eList').innerHTML=expenses.map(e=>`
+        <div class="list-row">
+          <div class="row-icon ic-red">−</div>
+          <div class="row-meta">
+            <div class="row-name">${esc(e.name)}</div>
+            <div class="row-detail">${totalIn>0?Math.round(e.amt/totalIn*100)+'% of income':'Monthly expense'}</div>
+          </div>
+          <div class="row-amt" style="color:var(--red);">${fmt(e.amt)}</div>
+          <button class="btn-rm" onclick="rmExpense(${e.id})">✕</button>
+        </div>`).join('');
+
+      // Breakdown
+      const brk=document.getElementById('eBreak');
+      if (expenses.length&&totalOut>0) {
+        brk.style.display='block';
+        brk.innerHTML='<div class="card-title" style="margin-bottom:1rem;">Breakdown</div>'+
+          expenses.map(e=>{
+            const pct=Math.round(e.amt/totalOut*100);
+            const col=e.amt/totalOut>0.4?'var(--red)':e.amt/totalOut>0.25?'var(--yellow)':'var(--blue)';
+            return `<div class="prog-row">
+              <div class="prog-label"><span>${esc(e.name)}</span><span>${fmt(e.amt)} · ${pct}%</span></div>
+              <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${col};"></div></div>
+            </div>`;
+          }).join('');
+      } else { brk.style.display='none'; }
+    }
+
+    /* ═══════════════════════════════════
+       LOANS
+    ═══════════════════════════════════ */
+    function calcLoan() {
+      const P=parseFloat(document.getElementById('lAmt').value);
+      const r=parseFloat(document.getElementById('lRate').value);
+      const y=parseFloat(document.getElementById('lTerm').value);
+      const g=parseFloat(document.getElementById('lGrace').value)||0;
+      if (!P||P<=0) return err('lErr','Please enter a valid loan amount.');
+      if (isNaN(r)||r<0) return err('lErr','Please enter a valid interest rate.');
+      if (!y||y<=0)  return err('lErr','Please enter a valid loan term.');
+      err('lErr','');
+
+      const mr=r/100/12;
+      const n=y*12;
+      const P2=g>0?P*(1+mr*g):P;
+      const monthly=mr===0?P2/n:P2*mr*Math.pow(1+mr,n)/(Math.pow(1+mr,n)-1);
+      const totalCost=monthly*n;
+      const totalInt=totalCost-P;
+      const intPct=totalCost>0?totalInt/totalCost:0;
+      const prinPct=1-intPct;
+
+      document.getElementById('lMonthly').textContent=fmt2(monthly);
+      document.getElementById('lMonthly').classList.remove('dim');
+      document.getElementById('lInterest').textContent=fmt(totalInt);
+      document.getElementById('lCost').textContent=fmt(totalCost);
+      document.getElementById('lPmts').textContent=n;
+      const lbar=document.getElementById('lBar');
+      lbar.style.width=Math.min(intPct*200,100)+'%';
+      lbar.style.background=intPct>0.3?'var(--red)':intPct>0.2?'var(--yellow)':'var(--green)';
+
+      document.getElementById('lBreakCard').style.display='block';
+      document.getElementById('sPrin').style.flex=String(prinPct);
+      document.getElementById('sInt').style.flex=String(intPct);
+      document.getElementById('sPrinPct').textContent=Math.round(prinPct*100)+'%';
+      document.getElementById('sIntPct').textContent=Math.round(intPct*100)+'%';
+
+      // Amortization
+      document.getElementById('lAmortCard').style.display='block';
+      let bal=P2, rows=[];
+      for (let m=1;m<=n;m++) {
+        const ip=bal*mr, pp=monthly-ip;
+        bal=Math.max(bal-pp,0);
+        rows.push({m,monthly,pp,ip,bal});
+      }
+      const disp=n<=6?rows:[...rows.slice(0,3),null,rows[rows.length-1]];
+      document.getElementById('amortBody').innerHTML=disp.map(r=>{
+        if (!r) return `<tr class="amort-ellipsis"><td colspan="5">· · ·</td></tr>`;
+        return `<tr><td>${r.m}</td><td>${fmt2(r.monthly)}</td><td>${fmt2(r.pp)}</td><td>${fmt2(r.ip)}</td><td>${fmt2(r.bal)}</td></tr>`;
+      }).join('');
+    }
+    ['lAmt','lRate','lTerm','lGrace'].forEach(id=>{
+      document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')calcLoan();});
+    });
+
+    /* ═══════════════════════════════════
+       TUITION
+    ═══════════════════════════════════ */
+    let tuitionItems=[], aidItems=[], nextTid=1;
+
+    function fillTuition(n,a,p) {
+      document.getElementById('tName').value=n;
+      document.getElementById('tAmt').value=a;
+      document.getElementById('tPer').value=p;
+    }
+    function addTuitionItem() {
+      const n=document.getElementById('tName').value.trim();
+      const a=parseFloat(document.getElementById('tAmt').value);
+      const p=document.getElementById('tPer').value;
+      if (!n) return err('tErr','Please enter an item name.');
+      if (!a||a<=0) return err('tErr','Please enter a valid amount.');
+      err('tErr','');
+      tuitionItems.push({id:nextTid++,name:n,amt:a,per:p});
+      document.getElementById('tName').value=''; document.getElementById('tAmt').value='';
+      renderTuition();
+    }
+    function addAid() {
+      const n=document.getElementById('aName').value.trim();
+      const a=parseFloat(document.getElementById('aAmt').value);
+      if (!n) return err('aErr','Please enter an aid source name.');
+      if (!a||a<=0) return err('aErr','Please enter a valid amount.');
+      err('aErr','');
+      aidItems.push({id:nextTid++,name:n,amt:a});
+      document.getElementById('aName').value=''; document.getElementById('aAmt').value='';
+      renderTuition();
+    }
+    function rmTuition(id) { tuitionItems=tuitionItems.filter(i=>i.id!==id); renderTuition(); }
+    function rmAid(id)     { aidItems=aidItems.filter(i=>i.id!==id); renderTuition(); }
+
+    function renderTuition() {
+      const semCost=tuitionItems.reduce((s,i)=>s+(i.per==='annual'?i.amt/2:i.amt),0);
+      const aidTot =aidItems.reduce((s,i)=>s+i.amt,0);
+      const net=semCost-aidTot;
+      const ann=net*2;
+
+      const hero=document.getElementById('tNet');
+      if (!tuitionItems.length&&!aidItems.length) {
+        hero.textContent='—'; hero.className='hero-num dim';
+        document.getElementById('tBar').style.width='0%';
+      } else {
+        hero.textContent=fmt(Math.max(net,0)); hero.className='hero-num';
+        const aidPct=semCost>0?Math.min(aidTot/semCost,1)*100:0;
+        const tb=document.getElementById('tBar');
+        tb.style.width=aidPct+'%';
+        tb.style.background=aidPct>50?'var(--green)':aidPct>25?'var(--yellow)':'var(--blue)';
+      }
+      document.getElementById('tGross').textContent=tuitionItems.length?fmt(semCost):'—';
+      document.getElementById('tAid').textContent=aidItems.length?fmt(aidTot):'—';
+      document.getElementById('tAnnual').textContent=tuitionItems.length?fmt(ann):'—';
+
+      const lc=document.getElementById('tListCard');
+      lc.style.display=tuitionItems.length?'block':'none';
+      document.getElementById('tList').innerHTML=tuitionItems.map(i=>`
+        <div class="list-row">
+          <div class="row-icon ic-blue">$</div>
+          <div class="row-meta">
+            <div class="row-name">${esc(i.name)}</div>
+            <div class="row-detail">Per ${i.per} · ${i.per==='annual'?fmt(i.amt/2)+'/semester':fmt(i.amt*2)+'/year'}</div>
+          </div>
+          <div class="row-amt">${fmt(i.amt)}</div>
+          <button class="btn-rm" onclick="rmTuition(${i.id})">✕</button>
+        </div>`).join('');
+
+      document.getElementById('aList').innerHTML=aidItems.length?aidItems.map(i=>`
+        <div class="list-row">
+          <div class="row-icon ic-green">✓</div>
+          <div class="row-meta">
+            <div class="row-name">${esc(i.name)}</div>
+            <div class="row-detail">Per semester · ${fmt(i.amt*2)}/year</div>
+          </div>
+          <div class="row-amt" style="color:var(--green);">−${fmt(i.amt)}</div>
+          <button class="btn-rm" onclick="rmAid(${i.id})">✕</button>
+        </div>`).join(''):'';
+    }
+
+    /* ═══════════════════════════════════
+       SAVINGS
+    ═══════════════════════════════════ */
+    let goals=[], nextGid=1;
+
+    function fillGoal(n,t,s,m) {
+      document.getElementById('gName').value=n;
+      document.getElementById('gTarget').value=t;
+      document.getElementById('gSaved').value=s;
+      document.getElementById('gMonthly').value=m;
+    }
+    function addGoal() {
+      const n=document.getElementById('gName').value.trim();
+      const t=parseFloat(document.getElementById('gTarget').value);
+      const s=parseFloat(document.getElementById('gSaved').value)||0;
+      const m=parseFloat(document.getElementById('gMonthly').value);
+      if (!n) return err('gErr','Please enter a goal name.');
+      if (!t||t<=0) return err('gErr','Please enter a valid target amount.');
+      if (!m||m<=0) return err('gErr','Please enter a valid monthly contribution.');
+      if (s<0) return err('gErr','Already saved amount cannot be negative.');
+      err('gErr','');
+      goals.push({id:nextGid++,name:n,target:t,saved:s,monthly:m});
+      document.getElementById('gName').value='';
+      document.getElementById('gTarget').value='';
+      document.getElementById('gSaved').value='';
+      document.getElementById('gMonthly').value='';
+      renderSavings();
+    }
+    function rmGoal(id) { goals=goals.filter(g=>g.id!==id); renderSavings(); }
+
+    function renderSavings() {
+      const totSaved  =goals.reduce((s,g)=>s+g.saved,0);
+      const totTarget =goals.reduce((s,g)=>s+g.target,0);
+      const totRemain =Math.max(totTarget-totSaved,0);
+      const ovPct     =totTarget>0?Math.min(totSaved/totTarget,1)*100:0;
+
+      const hero=document.getElementById('sTotal');
+      if (!goals.length) {
+        hero.textContent='—'; hero.className='hero-num dim';
+        document.getElementById('sBar').style.width='0%';
+      } else {
+        hero.textContent=fmt(totSaved); hero.className='hero-num';
+        const sb=document.getElementById('sBar');
+        sb.style.width=ovPct+'%';
+        sb.style.background=ovPct>=100?'var(--green)':'var(--purple)';
+      }
+      document.getElementById('sTarget').textContent=goals.length?fmt(totTarget):'—';
+      document.getElementById('sRemain').textContent=goals.length?fmt(totRemain):'—';
+      document.getElementById('sCount').textContent=goals.length;
+      document.getElementById('sSub').textContent=goals.length
+        ?Math.round(ovPct)+'% of your combined goals'
+        :'of your combined goals';
+
+      document.getElementById('goalCards').innerHTML=goals.map(g=>{
+        const pct  =Math.min(g.saved/g.target,1)*100;
+        const rem  =Math.max(g.target-g.saved,0);
+        const months=rem>0?Math.ceil(rem/g.monthly):0;
+        const done =rem===0;
+        const eta  =done?'Goal reached!':(() => {
+          const d=new Date(); d.setMonth(d.getMonth()+months);
+          return d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+        })();
+        const col  =done?'var(--green)':pct>60?'var(--blue)':'var(--purple)';
+        return `
+          <div class="goal-card">
+            <div class="goal-hd">
+              <div class="goal-name">${esc(g.name)}</div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <div class="goal-eta">${esc(eta)}</div>
+                <button class="btn-rm" onclick="rmGoal(${g.id})">✕</button>
+              </div>
+            </div>
+            <div class="prog-track" style="height:8px;">
+              <div class="prog-fill" style="width:${pct}%;background:${col};"></div>
+            </div>
+            <div class="goal-amts">
+              <span>${fmt(g.saved)} saved</span>
+              <span>${Math.round(pct)}%</span>
+              <span>${fmt(g.target)} goal</span>
+            </div>
+            ${done
+              ?`<div style="font-size:0.78rem;color:var(--green);font-weight:600;margin-top:0.5rem;">Goal reached!</div>`
+              :`<div style="font-size:0.78rem;color:var(--label2);margin-top:0.5rem;">${fmt(g.monthly)}/mo · ${months} month${months!==1?'s':''} to go</div>`
+            }
+          </div>`;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
