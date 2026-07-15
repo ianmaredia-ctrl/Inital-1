@@ -1,619 +1,988 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GPA Calculator</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trip Planner AI</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --teal:#0EA5A0; --teal-dark:#0B8683; --coral:#FF6B5B; --amber:#F5A524;
+    --navy:#0F2A3D; --bg:#F4F7F8; --surface:#ffffff;
+    --ink:#12232E; --ink2:#5C7480; --ink3:#9FB0B8;
+    --sep:rgba(15,42,61,0.08); --input-bg:rgba(15,42,61,0.04);
+    --radius:18px; --radius-sm:12px;
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif;
+    background:var(--bg); min-height:100vh; color:var(--ink);
+    display:flex; flex-direction:column; align-items:center;
+    padding:2.5rem 1.25rem 4rem; -webkit-font-smoothing:antialiased;
+  }
+  .hidden{display:none !important;}
+  .view{width:100%; max-width:720px;}
 
-    :root {
-      --blue:   #007AFF;
-      --green:  #34C759;
-      --yellow: #FF9F0A;
-      --red:    #FF3B30;
-      --bg:     #F5F5F7;
-      --surface: rgba(255,255,255,0.82);
-      --surface-solid: #ffffff;
-      --label:  #1d1d1f;
-      --label2: #6e6e73;
-      --label3: #aeaeb2;
-      --sep:    rgba(0,0,0,0.08);
-      --input-bg: rgba(0,0,0,0.04);
-      --radius: 18px;
-      --radius-sm: 12px;
-    }
+  .hero{text-align:center; margin-bottom:2rem;}
+  .hero-eyebrow{font-size:0.78rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--teal); margin-bottom:0.5rem;}
+  .hero h1{font-size:clamp(2rem,6vw,2.8rem); font-weight:700; letter-spacing:-0.03em; line-height:1.1;}
+  .hero p{margin-top:0.6rem; font-size:1rem; color:var(--ink2);}
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-      background: var(--bg);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 3.5rem 1.25rem 4rem;
-      color: var(--label);
-      -webkit-font-smoothing: antialiased;
-    }
+  .card{
+    background:var(--surface); border-radius:var(--radius); border:1px solid var(--sep);
+    box-shadow:0 2px 20px rgba(15,42,61,0.05), 0 1px 4px rgba(15,42,61,0.04);
+    padding:1.6rem 1.6rem; width:100%; margin-bottom:1.1rem;
+  }
+  .card-title{font-size:0.72rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink3); margin-bottom:1.1rem;}
+  .card-sub{font-size:0.85rem; color:var(--ink2); margin:-0.6rem 0 1rem;}
 
-    /* ── HERO ── */
-    .hero {
-      text-align: center;
-      margin-bottom: 3rem;
-    }
-    .hero-eyebrow {
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--blue);
-      margin-bottom: 0.6rem;
-    }
-    .hero h1 {
-      font-size: clamp(2.2rem, 6vw, 3.2rem);
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      color: var(--label);
-      line-height: 1.08;
-    }
-    .hero p {
-      margin-top: 0.7rem;
-      font-size: 1.05rem;
-      color: var(--label2);
-      font-weight: 400;
-    }
+  .choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:0.9rem; margin-bottom:1.1rem;}
+  @media (max-width:560px){.choice-grid{grid-template-columns:1fr;}}
+  .choice-card{
+    background:var(--surface); border-radius:var(--radius); border:1px solid var(--sep); padding:1.4rem;
+    cursor:pointer; text-align:left; transition:transform .12s, box-shadow .12s, border-color .12s;
+  }
+  .choice-card:hover{transform:translateY(-2px); box-shadow:0 10px 26px rgba(15,42,61,0.1); border-color:var(--teal);}
+  .choice-icon{font-size:1.6rem; margin-bottom:0.6rem;}
+  .choice-title{font-weight:700; font-size:1.02rem; margin-bottom:0.25rem;}
+  .choice-desc{font-size:0.83rem; color:var(--ink2); line-height:1.4;}
 
-    /* ── GPA HERO CARD ── */
-    .gpa-hero {
-      width: 100%;
-      max-width: 660px;
-      border-radius: var(--radius);
-      background: linear-gradient(145deg, #1c1c1e 0%, #2c2c2e 100%);
-      padding: 2.5rem 2.5rem 2rem;
-      margin-bottom: 1.25rem;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.22), 0 4px 16px rgba(0,0,0,0.12);
-    }
-    .gpa-hero::before {
-      content: '';
-      position: absolute;
-      top: -60px; right: -60px;
-      width: 240px; height: 240px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,122,255,0.25) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .gpa-hero-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.45);
-      margin-bottom: 0.4rem;
-    }
-    .gpa-number {
-      font-size: clamp(4rem, 14vw, 6rem);
-      font-weight: 700;
-      letter-spacing: -0.04em;
-      color: #ffffff;
-      line-height: 1;
-      transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
-    }
-    .gpa-number.placeholder { color: rgba(255,255,255,0.2); }
-    .gpa-subtitle {
-      font-size: 0.88rem;
-      color: rgba(255,255,255,0.4);
-      margin-top: 0.35rem;
-    }
-    .gpa-stats-row {
-      display: flex;
-      gap: 2rem;
-      margin-top: 2rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid rgba(255,255,255,0.1);
-    }
-    .gpa-stat-val {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #fff;
-      letter-spacing: -0.02em;
-    }
-    .gpa-stat-lbl {
-      font-size: 0.72rem;
-      color: rgba(255,255,255,0.4);
-      margin-top: 0.1rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
+  .field{margin-bottom:0.85rem;}
+  .field label{display:block; font-size:0.72rem; font-weight:700; color:var(--ink2); margin-bottom:0.32rem; letter-spacing:0.02em;}
+  .field input,.field select,.field textarea{
+    width:100%; padding:0.7rem 0.9rem; background:var(--input-bg); border:1.5px solid transparent;
+    border-radius:var(--radius-sm); font-size:0.95rem; font-family:inherit; color:var(--ink); outline:none;
+    transition:border-color .15s, background .15s, box-shadow .15s;
+  }
+  .field textarea{resize:vertical; min-height:80px;}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal); background:#fff; box-shadow:0 0 0 3px rgba(14,165,160,0.14);}
+  .field-hint{font-size:0.72rem; color:var(--ink3); margin-top:0.3rem;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;}
+  @media (max-width:560px){.field-row{grid-template-columns:1fr;}}
 
-    /* Progress ring inside hero */
-    .gpa-bar-wrap {
-      margin-top: 1.5rem;
-      background: rgba(255,255,255,0.1);
-      border-radius: 999px;
-      height: 4px;
-      overflow: hidden;
-    }
-    .gpa-bar {
-      height: 100%;
-      border-radius: 999px;
-      transition: width 0.6s cubic-bezier(0.65,0,0.35,1), background 0.4s ease;
-    }
+  .btn{
+    padding:0.75rem 1.1rem; border:none; border-radius:var(--radius-sm); font-size:0.95rem; font-weight:700;
+    font-family:inherit; cursor:pointer; letter-spacing:-0.01em; transition:opacity .15s, transform .12s;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--teal); color:#fff; width:100%;}
+  .btn-primary:hover{opacity:0.9;}
+  .btn-secondary{background:var(--input-bg); color:var(--ink);}
+  .btn-secondary:hover{opacity:0.8;}
+  .btn-ghost{background:none; color:var(--ink2); font-weight:600; padding:0.5rem 0.2rem;}
+  .btn-ghost:hover{color:var(--ink);}
+  .btn-block{width:100%;}
+  .btn-row{display:flex; gap:0.6rem; flex-wrap:wrap;}
 
-    /* ── CARDS ── */
-    .card {
-      background: var(--surface);
-      -webkit-backdrop-filter: blur(20px);
-      backdrop-filter: blur(20px);
-      border-radius: var(--radius);
-      border: 1px solid rgba(255,255,255,0.7);
-      box-shadow: 0 2px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
-      padding: 1.75rem 1.75rem;
-      width: 100%;
-      max-width: 660px;
-      margin-bottom: 1.25rem;
-    }
-    .card-title {
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--label3);
-      margin-bottom: 1.25rem;
-    }
+  .error-msg{font-size:0.8rem; color:var(--coral); display:none; margin-top:0.5rem;}
+  .toast{
+    position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--navy); color:#fff; padding:0.7rem 1.2rem; border-radius:999px; font-size:0.85rem;
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:50; font-weight:600;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
-    /* ── FORM ── */
-    .form-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    .form-row {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1.4fr;
-      gap: 0.75rem;
-    }
-    .field label {
-      display: block;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--label2);
-      margin-bottom: 0.35rem;
-      letter-spacing: 0.02em;
-    }
-    .field input {
-      width: 100%;
-      padding: 0.7rem 0.9rem;
-      background: var(--input-bg);
-      border: 1.5px solid transparent;
-      border-radius: var(--radius-sm);
-      font-size: 0.95rem;
-      font-family: inherit;
-      color: var(--label);
-      outline: none;
-      transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
-    }
-    .field input::placeholder { color: var(--label3); }
-    .field input:focus {
-      border-color: var(--blue);
-      background: #fff;
-      box-shadow: 0 0 0 3px rgba(0,122,255,0.12);
-    }
-    .grade-hint {
-      font-size: 0.7rem;
-      color: var(--label3);
-      margin-top: 0.28rem;
-    }
-    .btn-add {
-      width: 100%;
-      padding: 0.75rem;
-      background: var(--blue);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-size: 0.95rem;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      letter-spacing: -0.01em;
-      transition: opacity 0.15s, transform 0.12s;
-    }
-    .btn-add:hover  { opacity: 0.88; }
-    .btn-add:active { transform: scale(0.98); opacity: 0.8; }
+  /* Home trip list */
+  .trip-item{
+    display:flex; align-items:center; justify-content:space-between; padding:0.85rem 0; border-bottom:1px solid var(--sep); cursor:pointer;
+  }
+  .trip-item:last-child{border-bottom:none;}
+  .trip-item:hover .trip-item-name{color:var(--teal);}
+  .trip-item-name{font-weight:600; font-size:0.95rem; transition:color .12s;}
+  .trip-item-meta{font-size:0.78rem; color:var(--ink2); margin-top:0.15rem;}
+  .trip-item-remove{background:none; border:none; color:var(--ink3); cursor:pointer; font-size:0.8rem; padding:0.3rem;}
+  .trip-item-remove:hover{color:var(--coral);}
 
-    .error-msg {
-      font-size: 0.8rem;
-      color: var(--red);
-      display: none;
-      margin-top: 0.4rem;
-    }
+  /* Room header */
+  .room-header{
+    background:linear-gradient(145deg,var(--navy) 0%,#173C52 100%); border-radius:var(--radius); color:#fff;
+    padding:1.6rem; margin-bottom:1.1rem; position:relative; overflow:hidden;
+  }
+  .room-header::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;border-radius:50%;
+    background:radial-gradient(circle, rgba(14,165,160,0.35) 0%, transparent 70%);}
+  .room-eyebrow{font-size:0.72rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.55); margin-bottom:0.3rem;}
+  .room-title{font-size:1.5rem; font-weight:700; letter-spacing:-0.02em;}
+  .room-sub{font-size:0.88rem; color:rgba(255,255,255,0.65); margin-top:0.2rem;}
+  .room-actions{display:flex; align-items:center; gap:0.6rem; margin-top:1.1rem; flex-wrap:wrap;}
+  .code-pill{background:rgba(255,255,255,0.12); border-radius:999px; padding:0.4rem 0.9rem; font-size:0.82rem; font-weight:700; letter-spacing:0.06em;}
+  .btn-invite{background:var(--teal); color:#fff; border:none; border-radius:999px; padding:0.45rem 1rem; font-size:0.82rem; font-weight:700; cursor:pointer;}
+  .btn-invite:hover{opacity:0.9;}
+  .btn-home{background:rgba(255,255,255,0.12); color:#fff; border:none; border-radius:999px; padding:0.45rem 1rem; font-size:0.82rem; font-weight:600; cursor:pointer;}
 
-    /* ── COURSE LIST ── */
-    .course-row {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.9rem 0;
-      border-bottom: 1px solid var(--sep);
-      animation: fadeSlideIn 0.22s cubic-bezier(0.34,1.2,0.64,1) both;
-    }
-    .course-row:last-child { border-bottom: none; }
+  /* Members strip */
+  .members-strip{display:flex; gap:0.6rem; flex-wrap:wrap;}
+  .member-chip{display:flex; align-items:center; gap:0.45rem; background:var(--input-bg); border-radius:999px; padding:0.4rem 0.8rem 0.4rem 0.4rem; font-size:0.82rem; font-weight:600;}
+  .member-avatar{width:24px; height:24px; border-radius:50%; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.68rem; font-weight:700; flex-shrink:0;}
+  .member-dot{width:8px; height:8px; border-radius:50%; background:var(--ink3);}
+  .member-dot.ready{background:var(--teal);}
 
-    @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+  /* Tag chips */
+  .tag-grid{display:flex; flex-wrap:wrap; gap:0.5rem;}
+  .tag-chip{
+    padding:0.55rem 0.95rem; border-radius:999px; background:var(--input-bg); border:1.5px solid transparent;
+    font-size:0.85rem; font-weight:600; color:var(--ink2); cursor:pointer; transition:all .12s; user-select:none;
+  }
+  .tag-chip:hover{border-color:var(--teal);}
+  .tag-chip.active{background:var(--teal); color:#fff;}
+  .tag-chip.active.food{background:var(--coral);}
 
-    .course-icon {
-      width: 36px; height: 36px;
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-    .icon-A { background: #d1fae5; color: #065f46; }
-    .icon-B { background: #dbeafe; color: #1d4ed8; }
-    .icon-C { background: #fef3c7; color: #92400e; }
-    .icon-D { background: #ffedd5; color: #9a3412; }
-    .icon-F { background: #fee2e2; color: #991b1b; }
+  /* Booking cards */
+  .booking-card{
+    display:flex; align-items:flex-start; gap:0.85rem; padding:0.9rem 0; border-bottom:1px solid var(--sep);
+  }
+  .booking-card:last-child{border-bottom:none;}
+  .booking-icon{width:38px; height:38px; border-radius:10px; background:var(--input-bg); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;}
+  .booking-meta{flex:1; min-width:0;}
+  .booking-title{font-weight:700; font-size:0.92rem;}
+  .booking-detail{font-size:0.8rem; color:var(--ink2); margin-top:0.15rem; line-height:1.5;}
+  .btn-remove{width:26px; height:26px; border-radius:50%; background:var(--input-bg); border:none; cursor:pointer; color:var(--ink3); font-size:0.75rem; flex-shrink:0;}
+  .btn-remove:hover{background:#fde2df; color:var(--coral);}
 
-    .course-meta { flex: 1; min-width: 0; }
-    .course-name {
-      font-size: 0.95rem;
-      font-weight: 500;
-      color: var(--label);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .course-detail {
-      font-size: 0.78rem;
-      color: var(--label2);
-      margin-top: 0.1rem;
-    }
-    .course-pts {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--label);
-      min-width: 36px;
-      text-align: right;
-    }
-    .btn-remove {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      background: var(--input-bg);
-      border: none;
-      cursor: pointer;
-      color: var(--label3);
-      font-size: 0.8rem;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s, color 0.15s;
-      flex-shrink: 0;
-    }
-    .btn-remove:hover { background: #fee2e2; color: var(--red); }
+  .empty-state{text-align:center; padding:2rem 1rem; color:var(--ink3);}
+  .empty-icon{font-size:1.9rem; margin-bottom:0.5rem; opacity:0.6;}
+  .empty-state p{font-size:0.85rem;}
 
-    /* ── EMPTY STATE ── */
-    .empty-state {
-      text-align: center;
-      padding: 2.5rem 1rem;
-      color: var(--label3);
-    }
-    .empty-icon {
-      font-size: 2.2rem;
-      margin-bottom: 0.6rem;
-      opacity: 0.5;
-    }
-    .empty-state p { font-size: 0.88rem; }
+  /* Itinerary */
+  .day-card{border:1px solid var(--sep); border-radius:var(--radius-sm); padding:1.1rem 1.2rem; margin-bottom:0.85rem;}
+  .day-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.75rem;}
+  .day-title{font-weight:700; font-size:1rem;}
+  .day-date{font-size:0.78rem; color:var(--ink2); font-weight:600;}
+  .day-badge{display:inline-block; font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--teal); background:rgba(14,165,160,0.1); padding:0.15rem 0.55rem; border-radius:999px; margin-bottom:0.4rem;}
+  .block-row{display:flex; gap:0.75rem; padding:0.55rem 0; border-top:1px dashed var(--sep);}
+  .block-row:first-of-type{border-top:none;}
+  .block-time{font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--ink3); width:74px; flex-shrink:0; padding-top:0.1rem;}
+  .block-text{font-size:0.88rem; color:var(--ink); line-height:1.5;}
+  .block-attr{font-size:0.76rem; color:var(--teal); margin-top:0.15rem; font-weight:600;}
 
-    /* ── ACTIONS ── */
-    .list-footer {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 1rem;
-    }
-    .btn-clear {
-      font-size: 0.83rem;
-      font-weight: 500;
-      font-family: inherit;
-      color: var(--red);
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0.3rem 0.1rem;
-      transition: opacity 0.15s;
-    }
-    .btn-clear:hover { opacity: 0.65; }
-
-    /* ── SCALE REFERENCE ── */
-    .scale-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 0.6rem;
-    }
-    .scale-item {
-      background: var(--input-bg);
-      border-radius: var(--radius-sm);
-      padding: 0.65rem 0.85rem;
-      font-size: 0.8rem;
-      color: var(--label2);
-      line-height: 1.5;
-    }
-    .scale-item strong {
-      display: block;
-      font-size: 0.88rem;
-      color: var(--label);
-      margin-bottom: 0.05rem;
-    }
-    .scale-pts {
-      color: var(--blue);
-      font-weight: 600;
-    }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 500px) {
-      body { padding: 2rem 1rem 3rem; }
-      .form-row { grid-template-columns: 1fr 1fr; }
-      .gpa-hero  { padding: 2rem 1.5rem 1.5rem; }
-      .gpa-number { font-size: 4rem; }
-    }
-  </style>
+  .info-banner{
+    background:rgba(14,165,160,0.08); border:1px solid rgba(14,165,160,0.2); border-radius:var(--radius-sm);
+    padding:0.8rem 1rem; font-size:0.8rem; color:var(--teal-dark); margin-bottom:1.1rem; line-height:1.5;
+  }
+</style>
 </head>
 <body>
 
+<!-- ============ HOME ============ -->
+<section id="view-home" class="view">
   <div class="hero">
-    <div class="hero-eyebrow">Academic Tools</div>
-    <h1>GPA Calculator</h1>
-    <p>Track your courses and see your GPA update in real time.</p>
+    <div class="hero-eyebrow">AI Trip Planner</div>
+    <h1>Plan trips together.<br/>Let AI build the itinerary.</h1>
+    <p>Solo or with friends — add your bookings and interests, share a code, and get one merged plan.</p>
   </div>
 
-  <!-- GPA Hero -->
-  <div class="gpa-hero">
-    <div class="gpa-hero-label">Cumulative GPA</div>
-    <div class="gpa-number placeholder" id="gpaDisplay">—</div>
-    <div class="gpa-subtitle">4.0 Scale</div>
-    <div class="gpa-bar-wrap">
-      <div class="gpa-bar" id="gpaBar" style="width:0%;background:var(--blue);"></div>
+  <div class="choice-grid">
+    <div class="choice-card" onclick="startSetup('solo')">
+      <div class="choice-icon">🧳</div>
+      <div class="choice-title">Plan a Solo Trip</div>
+      <div class="choice-desc">Add your bookings and preferences, get a personalized itinerary.</div>
     </div>
-    <div class="gpa-stats-row">
-      <div>
-        <div class="gpa-stat-val" id="totalCredits">0</div>
-        <div class="gpa-stat-lbl">Credits</div>
-      </div>
-      <div>
-        <div class="gpa-stat-val" id="totalCourses">0</div>
-        <div class="gpa-stat-lbl">Courses</div>
-      </div>
-      <div>
-        <div class="gpa-stat-val" id="qualityPts">0.00</div>
-        <div class="gpa-stat-lbl">Quality Points</div>
-      </div>
+    <div class="choice-card" onclick="startSetup('group')">
+      <div class="choice-icon">👥</div>
+      <div class="choice-title">Start a Group Trip</div>
+      <div class="choice-desc">Create a trip and get a code to share with friends.</div>
     </div>
   </div>
 
-  <!-- Add Course -->
   <div class="card">
-    <div class="card-title">Add a Course</div>
-    <div class="form-stack">
-      <div class="form-row">
-        <div class="field">
-          <label>Course Name</label>
-          <input id="courseName" type="text" placeholder="e.g. Calculus I" autocomplete="off" />
-        </div>
-        <div class="field">
-          <label>Credits</label>
-          <input id="credits" type="number" min="0.5" max="12" step="0.5" placeholder="3" />
-        </div>
-        <div class="field">
-          <label>Grade</label>
-          <input id="grade" type="text" placeholder="A, B+, 85%, 92…" autocomplete="off" />
-          <div class="grade-hint">Letter grade or percentage</div>
-        </div>
-      </div>
-      <button class="btn-add" onclick="addCourse()">Add Course</button>
+    <div class="card-title">Join a Group Trip</div>
+    <div class="card-sub">Have an invite link from a friend? Paste it below.</div>
+    <div class="field">
+      <label>Invite link</label>
+      <textarea id="joinPayloadHome" placeholder="Paste the invite link your friend sent you…"></textarea>
     </div>
-    <div class="error-msg" id="inputError"></div>
+    <button class="btn btn-primary btn-block" onclick="goToJoinFromHome()">Continue to Join</button>
   </div>
 
-  <!-- Course List -->
+  <div class="card" id="myTripsCard">
+    <div class="card-title">Your Trips</div>
+    <div id="myTripsList"></div>
+  </div>
+</section>
+
+<!-- ============ SETUP ============ -->
+<section id="view-setup" class="view hidden">
+  <div class="hero">
+    <div class="hero-eyebrow" id="setupEyebrow">New Trip</div>
+    <h1 id="setupTitle">Trip Details</h1>
+  </div>
   <div class="card">
-    <div class="card-title">Courses</div>
-    <div id="courseList">
-      <div class="empty-state">
-        <div class="empty-icon">📚</div>
-        <p>No courses yet. Add your first course above.</p>
+    <div class="field">
+      <label>Trip Name</label>
+      <input id="setupTripName" type="text" placeholder="e.g. Tokyo Adventure" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label>Destination</label>
+      <input id="setupDestination" type="text" placeholder="e.g. Tokyo, Japan" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label>Your Name</label>
+      <input id="setupYourName" type="text" placeholder="e.g. Alex" autocomplete="off" />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Start Date (optional)</label>
+        <input id="setupStartDate" type="date" />
+      </div>
+      <div class="field">
+        <label>End Date (optional)</label>
+        <input id="setupEndDate" type="date" />
       </div>
     </div>
-    <div class="list-footer">
-      <button class="btn-clear" onclick="clearAll()">Clear All</button>
+    <div class="field-hint" style="margin:-0.4rem 0 0.9rem;">Leave dates blank and the AI will infer them from flights once bookings are added.</div>
+    <div class="error-msg" id="setupError"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="showView('home')">Back</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="createTrip()">Create Trip</button>
     </div>
   </div>
+</section>
 
-  <!-- Grade Scale -->
+<!-- ============ JOIN ============ -->
+<section id="view-join" class="view hidden">
+  <div class="hero">
+    <div class="hero-eyebrow">Join Trip</div>
+    <h1 id="joinTitle">Join a Group Trip</h1>
+    <p id="joinSub">Enter your name to hop in.</p>
+  </div>
   <div class="card">
-    <div class="card-title">Grade Scale Reference</div>
-    <div class="scale-grid">
-      <div class="scale-item"><strong>A+ / A</strong>97–100% &nbsp;<span class="scale-pts">4.0</span></div>
-      <div class="scale-item"><strong>A−</strong>90–96% &nbsp;<span class="scale-pts">3.7</span></div>
-      <div class="scale-item"><strong>B+</strong>87–89% &nbsp;<span class="scale-pts">3.3</span></div>
-      <div class="scale-item"><strong>B</strong>83–86% &nbsp;<span class="scale-pts">3.0</span></div>
-      <div class="scale-item"><strong>B−</strong>80–82% &nbsp;<span class="scale-pts">2.7</span></div>
-      <div class="scale-item"><strong>C+</strong>77–79% &nbsp;<span class="scale-pts">2.3</span></div>
-      <div class="scale-item"><strong>C</strong>73–76% &nbsp;<span class="scale-pts">2.0</span></div>
-      <div class="scale-item"><strong>C−</strong>70–72% &nbsp;<span class="scale-pts">1.7</span></div>
-      <div class="scale-item"><strong>D+</strong>67–69% &nbsp;<span class="scale-pts">1.3</span></div>
-      <div class="scale-item"><strong>D</strong>63–66% &nbsp;<span class="scale-pts">1.0</span></div>
-      <div class="scale-item"><strong>D−</strong>60–62% &nbsp;<span class="scale-pts">0.7</span></div>
-      <div class="scale-item"><strong>F</strong>0–59% &nbsp;<span class="scale-pts">0.0</span></div>
+    <div class="field hidden" id="joinPayloadField">
+      <label>Invite link</label>
+      <textarea id="joinPayload" placeholder="Paste the invite link your friend sent you…"></textarea>
+      <div class="field-hint">This is a serverless demo — trip data travels inside the invite link itself, not a bare code. Ask your friend to resend the full link if you only have a short code.</div>
+    </div>
+    <div class="field">
+      <label>Your Name</label>
+      <input id="joinYourName" type="text" placeholder="e.g. Priya" autocomplete="off" />
+    </div>
+    <div class="error-msg" id="joinError"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="showView('home')">Back</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="joinTrip()">Join Trip</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRIP ROOM ============ -->
+<section id="view-room" class="view hidden">
+  <div class="room-header">
+    <div class="room-eyebrow" id="roomEyebrow">Group Trip</div>
+    <div class="room-title" id="roomTitle">Trip Name</div>
+    <div class="room-sub" id="roomSub">Destination · Dates</div>
+    <div class="room-actions">
+      <span class="code-pill" id="roomCodePill">CODE</span>
+      <button class="btn-invite hidden" id="btnInvite" onclick="copyInviteLink()">Copy Invite Link</button>
+      <button class="btn-home" onclick="showView('home'); renderHomeTrips();">All Trips</button>
     </div>
   </div>
 
-  <script>
-    const GRADE_MAP = {
-      'A+': 4.0, 'A': 4.0, 'A-': 3.7,
-      'B+': 3.3, 'B': 3.0, 'B-': 2.7,
-      'C+': 2.3, 'C': 2.0, 'C-': 1.7,
-      'D+': 1.3, 'D': 1.0, 'D-': 0.7,
-      'F': 0.0
-    };
+  <div class="card hidden" id="membersCard">
+    <div class="card-title">Trip Members</div>
+    <div class="members-strip" id="membersStrip"></div>
+  </div>
 
-    function percentToPoints(p) {
-      if (p >= 93) return 4.0;
-      if (p >= 90) return 3.7;
-      if (p >= 87) return 3.3;
-      if (p >= 83) return 3.0;
-      if (p >= 80) return 2.7;
-      if (p >= 77) return 2.3;
-      if (p >= 73) return 2.0;
-      if (p >= 70) return 1.7;
-      if (p >= 67) return 1.3;
-      if (p >= 63) return 1.0;
-      if (p >= 60) return 0.7;
-      return 0.0;
-    }
+  <div class="info-banner">
+    This is a local, serverless demo — each device keeps its own copy of the trip. Click <strong>Copy Invite Link</strong> any time to share your latest additions with the group, and ask friends to do the same so everyone's picks make it into the plan.
+  </div>
 
-    function percentToLetter(p) {
-      if (p >= 97) return 'A+';
-      if (p >= 93) return 'A';
-      if (p >= 90) return 'A-';
-      if (p >= 87) return 'B+';
-      if (p >= 83) return 'B';
-      if (p >= 80) return 'B-';
-      if (p >= 77) return 'C+';
-      if (p >= 73) return 'C';
-      if (p >= 70) return 'C-';
-      if (p >= 67) return 'D+';
-      if (p >= 63) return 'D';
-      if (p >= 60) return 'D-';
-      return 'F';
-    }
+  <div class="card">
+    <div class="card-title">My Bookings</div>
+    <div class="card-sub">Paste a confirmation email or booking text and let the AI pull out the details — then double-check and edit before adding.</div>
+    <div class="field">
+      <label>Paste confirmation text</label>
+      <textarea id="bookingPaste" placeholder="Paste flight, hotel, or Airbnb/VRBO confirmation text here…"></textarea>
+    </div>
+    <button class="btn btn-secondary btn-block" onclick="parseBooking()">✨ Parse with AI</button>
 
-    function parseGrade(raw) {
-      const s = raw.trim().toUpperCase().replace(/[−–]/g, '-');
-      const pctMatch = s.match(/^(\d+(\.\d+)?)%?$/);
-      if (pctMatch) {
-        const pct = parseFloat(pctMatch[1]);
-        if (pct < 0 || pct > 100) return null;
-        return { points: percentToPoints(pct), letter: percentToLetter(pct), display: pct + '%' };
-      }
-      if (Object.prototype.hasOwnProperty.call(GRADE_MAP, s)) {
-        return { points: GRADE_MAP[s], letter: s, display: s };
-      }
-      return null;
-    }
+    <div style="height:1rem;"></div>
+    <div class="field-row">
+      <div class="field">
+        <label>Type</label>
+        <select id="bkType">
+          <option value="Flight">Flight</option>
+          <option value="Hotel">Hotel</option>
+          <option value="Airbnb/VRBO">Airbnb/VRBO</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Title / Provider</label>
+        <input id="bkLabel" type="text" placeholder="e.g. Delta DL123 or Marriott Downtown" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Start Date</label>
+        <input id="bkStartDate" type="date" />
+      </div>
+      <div class="field">
+        <label>Start Time (optional)</label>
+        <input id="bkStartTime" type="time" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>End Date (optional)</label>
+        <input id="bkEndDate" type="date" />
+      </div>
+      <div class="field">
+        <label>End Time (optional)</label>
+        <input id="bkEndTime" type="time" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Location</label>
+        <input id="bkLocation" type="text" placeholder="e.g. JFK → HND or 123 Main St" />
+      </div>
+      <div class="field">
+        <label>Confirmation # (optional)</label>
+        <input id="bkConfirmation" type="text" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Price (optional)</label>
+      <input id="bkPrice" type="text" placeholder="$0.00" />
+    </div>
+    <button class="btn btn-primary btn-block" onclick="addBooking()">Add Booking</button>
 
-    function iconClass(letter) {
-      return 'course-icon icon-' + (letter[0] === 'F' ? 'F' : letter[0]);
-    }
+    <div style="height:0.5rem;"></div>
+    <div id="bookingList"></div>
+  </div>
 
-    let courses = [];
+  <div class="card">
+    <div class="card-title">My Preferences</div>
+    <div class="card-sub">Activities you're into</div>
+    <div class="tag-grid" id="activityTags"></div>
+    <div style="height:1.1rem;"></div>
+    <div class="card-sub">Food & dining style</div>
+    <div class="tag-grid" id="foodTags"></div>
+    <div class="field" style="margin-top:1.1rem;">
+      <label>Notes for the group (optional)</label>
+      <textarea id="prefNotes" placeholder="Anything else the AI should know — pace, budget, must-dos…"></textarea>
+    </div>
+    <button class="btn btn-secondary btn-block" onclick="savePreferences()">Save Preferences</button>
+  </div>
 
-    function showError(msg) {
-      const el = document.getElementById('inputError');
-      el.textContent = msg;
-      el.style.display = msg ? 'block' : 'none';
-    }
+  <div class="card">
+    <div class="card-title">Group Plan</div>
+    <div class="card-sub" id="planStatus"></div>
+    <button class="btn btn-primary btn-block" onclick="runGeneratePlan()">✨ Generate AI Plan</button>
+    <div style="height:0.5rem;"></div>
+    <div id="planOutput"></div>
+  </div>
+</section>
 
-    function addCourse() {
-      const name     = document.getElementById('courseName').value.trim();
-      const credits  = parseFloat(document.getElementById('credits').value);
-      const gradeRaw = document.getElementById('grade').value;
+<div class="toast" id="toast"></div>
 
-      if (!name)               return showError('Please enter a course name.');
-      if (!credits || credits <= 0) return showError('Please enter a valid credit value.');
-      const parsed = parseGrade(gradeRaw);
-      if (!parsed)             return showError('Use a letter grade (A, B+, C−) or a percentage (85%).');
+<script>
+/* ===================== Data & Constants ===================== */
+const ACTIVITY_TAGS = ['Adventure & Outdoors','Beaches & Relaxation','Culture & History','Nightlife & Bars','Shopping','Museums & Art','Nature & Hiking','Family-Friendly','Wellness & Spa','Live Music & Events'];
+const FOOD_TAGS = ['Local & Street Food','Fine Dining','Cafes & Brunch','Vegan/Vegetarian','Seafood','Italian','Asian Cuisine','Bakeries & Desserts'];
 
-      showError('');
-      courses.push({ name, credits, ...parsed, id: Date.now() });
-      document.getElementById('courseName').value = '';
-      document.getElementById('credits').value    = '';
-      document.getElementById('grade').value      = '';
-      document.getElementById('courseName').focus();
-      render();
-    }
+const ACTIVITY_SUGGESTIONS = {
+  'Adventure & Outdoors':["Try an outdoor adventure activity like ziplining, kayaking, or biking.","Book a half-day outdoor excursion suited to the local terrain.","Get the adrenaline going with a local adventure tour."],
+  'Beaches & Relaxation':["Spend this block unwinding at a beach or scenic waterfront.","Take it slow with a relaxing stroll somewhere scenic.","Find a quiet spot to relax and soak in the views."],
+  'Culture & History':["Explore a museum, landmark, or historic district.","Take a guided walking tour through the old town or heritage area.","Visit a notable cultural site or monument."],
+  'Nightlife & Bars':["Check out the local nightlife scene at a bar or lounge.","Head out for evening drinks somewhere lively.","Experience the after-dark scene with live entertainment."],
+  'Shopping':["Browse local markets, boutiques, or a shopping district.","Set aside time for souvenir and local shopping.","Explore a market street or shopping quarter."],
+  'Museums & Art':["Visit an art museum or gallery district.","Spend this block exploring local art and exhibitions.","Check out a notable gallery or art installation."],
+  'Nature & Hiking':["Get outdoors with a scenic hike or nature walk.","Explore a nearby park, trail, or natural landmark.","Spend time in nature at a scenic outdoor spot."],
+  'Family-Friendly':["Enjoy a family-friendly attraction or activity.","Pick something fun and easygoing the whole group can enjoy.","Visit a family-oriented attraction or park."],
+  'Wellness & Spa':["Book some downtime for a spa or wellness activity.","Recharge with a relaxing wellness session.","Take time for self-care — spa, yoga, or a quiet retreat."],
+  'Live Music & Events':["Check what live music or local events are happening.","Catch a local show, performance, or event nearby.","See what's on at a local venue for live entertainment."]
+};
+const FOOD_SUGGESTIONS = {
+  'Local & Street Food':["grab something from a local street-food stall or market","try a well-loved neighborhood spot known for local flavors","sample authentic local fare at a casual local favorite"],
+  'Fine Dining':["book a table somewhere upscale for a proper sit-down meal","treat the group to a fine-dining experience","go all out with a memorable fine-dining meal"],
+  'Cafes & Brunch':["find a cozy cafe for something light","enjoy a relaxed brunch spot","stop by a local cafe for coffee and a bite"],
+  'Vegan/Vegetarian':["look for a plant-based or vegetarian-friendly spot","seek out a vegan/vegetarian menu nearby","find a highly-rated plant-based eatery"],
+  'Seafood':["go for fresh seafood, ideally somewhere near the water","try a well-regarded local seafood spot","seek out the local catch at a seafood restaurant"],
+  'Italian':["find a solid Italian spot for pasta or pizza","enjoy Italian classics at a local trattoria-style place","look for a well-reviewed Italian restaurant nearby"],
+  'Asian Cuisine':["explore local Asian cuisine options nearby","try a well-reviewed Asian restaurant","seek out authentic Asian flavors in the area"],
+  'Bakeries & Desserts':["stop by a bakery or dessert spot to treat everyone","find something sweet at a local bakery","grab a local pastry or dessert specialty"],
+  'default':["explore a well-reviewed local restaurant near your accommodation","ask locals or check reviews for a nearby favorite","pick somewhere close by with good reviews"]
+};
 
-    function removeCourse(id) {
-      courses = courses.filter(c => c.id !== id);
-      render();
-    }
+let currentTrip = null;
+let myMemberId = null;
 
-    function clearAll() {
-      if (!courses.length) return;
-      courses = [];
-      render();
-    }
+/* ===================== Storage helpers ===================== */
+function loadAllTrips(){ try{ return JSON.parse(localStorage.getItem('tripApp_trips')||'{}'); }catch(e){ return {}; } }
+function saveTrip(trip){
+  trip.updatedAt = Date.now();
+  const all = loadAllTrips();
+  all[trip.id] = trip;
+  localStorage.setItem('tripApp_trips', JSON.stringify(all));
+}
+function removeTripLocal(id){
+  const all = loadAllTrips();
+  delete all[id];
+  localStorage.setItem('tripApp_trips', JSON.stringify(all));
+  localStorage.removeItem('tripApp_me_' + id);
+}
+function getMyMemberId(tripId){ return localStorage.getItem('tripApp_me_' + tripId); }
+function setMyMemberId(tripId, memberId){ localStorage.setItem('tripApp_me_' + tripId, memberId); }
 
-    function render() {
-      const list = document.getElementById('courseList');
+/* ===================== Utils ===================== */
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function genCode(){
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let out = '';
+  for(let i=0;i<6;i++) out += chars[Math.floor(Math.random()*chars.length)];
+  return out;
+}
+function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function initials(name){ return (name||'?').trim().split(/\s+/).map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
+function b64Encode(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64Decode(str){ return decodeURIComponent(escape(atob(str))); }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function fmtDate(d){
+  if(!d) return '';
+  const dt = new Date(d + 'T00:00:00');
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString(undefined,{month:'short', day:'numeric', year:'numeric'});
+}
+function fmtDateShort(d){
+  const dt = new Date(d + 'T00:00:00');
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+}
+function addDays(dateStr, n){
+  const dt = new Date(dateStr + 'T00:00:00');
+  dt.setDate(dt.getDate() + n);
+  return dt.toISOString().slice(0,10);
+}
+function dayDiff(a,b){
+  const A = new Date(a+'T00:00:00'), B = new Date(b+'T00:00:00');
+  return Math.round((B-A)/86400000);
+}
+function todayStr(){ return new Date().toISOString().slice(0,10); }
 
-      if (!courses.length) {
-        list.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📚</div>
-            <p>No courses yet. Add your first course above.</p>
-          </div>`;
-        setGPA(null, 0, 0, 0);
-        return;
-      }
+/* ===================== View switching ===================== */
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
+  document.getElementById('view-' + id).classList.remove('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
 
-      list.innerHTML = courses.map(c => `
-        <div class="course-row">
-          <div class="${iconClass(c.letter)}">${c.letter}</div>
-          <div class="course-meta">
-            <div class="course-name">${escHtml(c.name)}</div>
-            <div class="course-detail">${c.credits} credit${c.credits !== 1 ? 's' : ''} · ${c.display}</div>
-          </div>
-          <div class="course-pts">${(c.points * c.credits).toFixed(2)}</div>
-          <button class="btn-remove" onclick="removeCourse(${c.id})" title="Remove">✕</button>
-        </div>
-      `).join('');
+/* ===================== Home ===================== */
+function renderHomeTrips(){
+  const all = loadAllTrips();
+  const ids = Object.keys(all).sort((a,b)=> (all[b].updatedAt||0) - (all[a].updatedAt||0));
+  const card = document.getElementById('myTripsCard');
+  const list = document.getElementById('myTripsList');
+  if(!ids.length){ card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  list.innerHTML = ids.map(id=>{
+    const t = all[id];
+    return `<div class="trip-item">
+      <div onclick="openExistingTrip('${id}')" style="flex:1; cursor:pointer;">
+        <div class="trip-item-name">${escHtml(t.name)}</div>
+        <div class="trip-item-meta">${escHtml(t.destination||'')} · ${t.mode==='solo'?'Solo':'Group · ' + t.members.length + ' member' + (t.members.length!==1?'s':'')}</div>
+      </div>
+      <button class="trip-item-remove" onclick="event.stopPropagation(); removeTripLocal('${id}'); renderHomeTrips();" title="Remove from this device">✕</button>
+    </div>`;
+  }).join('');
+}
+function openExistingTrip(id){
+  const all = loadAllTrips();
+  const trip = all[id];
+  if(!trip) return;
+  currentTrip = trip;
+  myMemberId = getMyMemberId(id) || (trip.members[0] && trip.members[0].id);
+  openRoom();
+}
+function goToJoinFromHome(){
+  const val = document.getElementById('joinPayloadHome').value.trim();
+  showView('join');
+  document.getElementById('joinPayloadField').classList.remove('hidden');
+  document.getElementById('joinPayload').value = val;
+  document.getElementById('joinTitle').textContent = 'Join a Group Trip';
+  document.getElementById('joinSub').textContent = 'Enter your name to hop in.';
+}
 
-      const totalCredits = courses.reduce((s, c) => s + c.credits, 0);
-      const totalQuality = courses.reduce((s, c) => s + c.points * c.credits, 0);
-      const gpa = totalCredits > 0 ? totalQuality / totalCredits : 0;
-      setGPA(gpa, totalCredits, courses.length, totalQuality);
-    }
+/* ===================== Setup / Create ===================== */
+let pendingMode = 'solo';
+function startSetup(mode){
+  pendingMode = mode;
+  document.getElementById('setupEyebrow').textContent = mode==='solo' ? 'Solo Trip' : 'Group Trip';
+  document.getElementById('setupTitle').textContent = mode==='solo' ? 'Plan Your Solo Trip' : 'Start a Group Trip';
+  document.getElementById('setupError').style.display='none';
+  showView('setup');
+}
+function createTrip(){
+  const name = document.getElementById('setupTripName').value.trim();
+  const destination = document.getElementById('setupDestination').value.trim();
+  const yourName = document.getElementById('setupYourName').value.trim();
+  const startDate = document.getElementById('setupStartDate').value;
+  const endDate = document.getElementById('setupEndDate').value;
+  const err = document.getElementById('setupError');
+  if(!name || !destination || !yourName){
+    err.textContent = 'Please fill in trip name, destination, and your name.';
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+  const member = { id: uid(), name: yourName, bookings: [], preferences:{activities:[], food:[], notes:''}, updatedAt: Date.now() };
+  const trip = {
+    id: genCode(), name, destination, mode: pendingMode,
+    manualStart: startDate || null, manualEnd: endDate || null,
+    members: [member], createdAt: Date.now(), updatedAt: Date.now(), plan: null
+  };
+  saveTrip(trip);
+  setMyMemberId(trip.id, member.id);
+  currentTrip = trip; myMemberId = member.id;
+  openRoom();
+}
 
-    function setGPA(gpa, credits, count, quality) {
-      const display = document.getElementById('gpaDisplay');
-      const bar     = document.getElementById('gpaBar');
+/* ===================== Join ===================== */
+function extractPayload(raw){
+  const m = raw.match(/[#?]t=([^&\s]+)/);
+  if(m) return decodeURIComponent(m[1]);
+  if(/^eyJ/.test(raw.trim())) return raw.trim();
+  return null;
+}
+function joinTrip(){
+  const raw = document.getElementById('joinPayload').value.trim();
+  const yourName = document.getElementById('joinYourName').value.trim();
+  const err = document.getElementById('joinError');
+  if(!yourName){ err.textContent='Please enter your name.'; err.style.display='block'; return; }
+  const payload = extractPayload(raw);
+  if(!payload){
+    err.textContent = "That doesn't look like a full invite link. This is a serverless demo, so a bare trip code can't be looked up — ask your friend to resend the full invite link (it contains the code) and paste it above.";
+    err.style.display = 'block';
+    return;
+  }
+  let incoming;
+  try{ incoming = JSON.parse(b64Decode(payload)); }
+  catch(e){ err.textContent = "Couldn't read that invite link — make sure you copied the whole thing."; err.style.display='block'; return; }
+  err.style.display = 'none';
+  finalizeJoin(incoming, yourName);
+}
+function finalizeJoin(incoming, yourName){
+  const all = loadAllTrips();
+  const local = all[incoming.id];
+  const merged = local ? mergeTrips(local, incoming) : incoming;
 
-      if (gpa === null) {
-        display.textContent = '—';
-        display.classList.add('placeholder');
-        bar.style.width = '0%';
-        document.getElementById('totalCredits').textContent = '0';
-        document.getElementById('totalCourses').textContent = '0';
-        document.getElementById('qualityPts').textContent   = '0.00';
-        return;
-      }
+  let member = merged.members.find(m => m.name.toLowerCase() === yourName.toLowerCase());
+  if(!member){
+    member = { id: uid(), name: yourName, bookings: [], preferences:{activities:[], food:[], notes:''}, updatedAt: Date.now() };
+    merged.members.push(member);
+  }
+  saveTrip(merged);
+  setMyMemberId(merged.id, member.id);
+  currentTrip = merged; myMemberId = member.id;
+  history.replaceState(null, '', location.pathname);
+  openRoom();
+  showToast('Joined ' + merged.name + '!');
+}
+function mergeTrips(local, incoming){
+  const byNewer = (local.updatedAt||0) >= (incoming.updatedAt||0) ? local : incoming;
+  const merged = Object.assign({}, byNewer);
+  const map = {};
+  (local.members||[]).forEach(m => map[m.id] = m);
+  (incoming.members||[]).forEach(m => {
+    const ex = map[m.id];
+    if(!ex || (m.updatedAt||0) > (ex.updatedAt||0)) map[m.id] = m;
+  });
+  merged.members = Object.values(map);
+  merged.plan = (incoming.updatedAt||0) >= (local.updatedAt||0) ? incoming.plan : local.plan;
+  merged.updatedAt = Math.max(local.updatedAt||0, incoming.updatedAt||0);
+  return merged;
+}
 
-      display.textContent = gpa.toFixed(2);
-      display.classList.remove('placeholder');
+/* Handle someone opening a shared invite link directly */
+function handleIncomingHash(){
+  const payload = extractPayload(location.hash);
+  if(!payload) return false;
+  let incoming;
+  try{ incoming = JSON.parse(b64Decode(payload)); }catch(e){ return false; }
+  const savedMemberId = getMyMemberId(incoming.id);
+  const all = loadAllTrips();
+  const local = all[incoming.id];
+  const merged = local ? mergeTrips(local, incoming) : incoming;
+  saveTrip(merged);
 
-      const pct = (gpa / 4.0) * 100;
-      bar.style.width = pct + '%';
-      bar.style.background =
-        gpa >= 3.5 ? 'var(--green)' :
-        gpa >= 3.0 ? 'var(--blue)'  :
-        gpa >= 2.0 ? 'var(--yellow)': 'var(--red)';
+  if(savedMemberId && merged.members.some(m=>m.id===savedMemberId)){
+    currentTrip = merged; myMemberId = savedMemberId;
+    history.replaceState(null, '', location.pathname);
+    openRoom();
+    showToast('Welcome back to ' + merged.name);
+    return true;
+  }
+  showView('join');
+  document.getElementById('joinPayloadField').classList.add('hidden');
+  document.getElementById('joinTitle').textContent = "You're invited to " + merged.name;
+  document.getElementById('joinSub').textContent = (merged.destination||'') + ' — enter your name to join.';
+  document.getElementById('joinPayload').value = payload;
+  window._pendingIncomingPayload = payload;
+  const oldJoin = joinTrip;
+  window.joinTrip = function(){
+    const yourName = document.getElementById('joinYourName').value.trim();
+    const err = document.getElementById('joinError');
+    if(!yourName){ err.textContent='Please enter your name.'; err.style.display='block'; return; }
+    err.style.display='none';
+    finalizeJoin(merged, yourName);
+    window.joinTrip = oldJoin;
+  };
+  return true;
+}
 
-      document.getElementById('totalCredits').textContent = credits;
-      document.getElementById('totalCourses').textContent = count;
-      document.getElementById('qualityPts').textContent   = quality.toFixed(2);
-    }
+/* ===================== Trip Room ===================== */
+function currentMember(){ return currentTrip.members.find(m => m.id === myMemberId); }
 
-    function escHtml(s) {
-      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
+function tripDateRange(trip){
+  let start = trip.manualStart, end = trip.manualEnd;
+  const allDates = [];
+  trip.members.forEach(m => (m.bookings||[]).forEach(b => {
+    if(b.startDate) allDates.push(b.startDate);
+    if(b.endDate) allDates.push(b.endDate);
+  }));
+  if(allDates.length){
+    allDates.sort();
+    if(!start) start = allDates[0];
+    if(!end) end = allDates[allDates.length-1];
+  }
+  if(!start){ start = todayStr(); }
+  if(!end || dayDiff(start,end) < 0){ end = addDays(start, 2); }
+  return {start, end};
+}
 
-    ['courseName','credits','grade'].forEach(id => {
-      document.getElementById(id).addEventListener('keydown', e => {
-        if (e.key === 'Enter') addCourse();
-      });
+function openRoom(){
+  const trip = currentTrip;
+  document.getElementById('roomEyebrow').textContent = trip.mode==='solo' ? 'Solo Trip' : 'Group Trip';
+  document.getElementById('roomTitle').textContent = trip.name;
+  const range = tripDateRange(trip);
+  document.getElementById('roomSub').textContent = (trip.destination||'') + '  ·  ' + fmtDate(range.start) + ' – ' + fmtDate(range.end);
+  document.getElementById('roomCodePill').textContent = trip.id;
+  document.getElementById('btnInvite').classList.toggle('hidden', trip.mode==='solo');
+  document.getElementById('membersCard').classList.toggle('hidden', trip.mode==='solo');
+
+  renderMembers();
+  renderBookingList();
+  renderTagChips();
+  loadPreferencesIntoUI();
+  renderPlanArea();
+  showView('room');
+}
+
+function renderMembers(){
+  const strip = document.getElementById('membersStrip');
+  strip.innerHTML = currentTrip.members.map(m=>{
+    const ready = (m.bookings && m.bookings.length) || (m.preferences && (m.preferences.activities.length || m.preferences.food.length));
+    return `<div class="member-chip">
+      <span class="member-avatar">${escHtml(initials(m.name))}</span>
+      ${escHtml(m.name)}${m.id===myMemberId?' (you)':''}
+      <span class="member-dot ${ready?'ready':''}"></span>
+    </div>`;
+  }).join('');
+}
+
+/* ---- Bookings ---- */
+function parseBooking(){
+  const text = document.getElementById('bookingPaste').value;
+  if(!text.trim()){ showToast('Paste some confirmation text first.'); return; }
+  const result = parseBookingText(text);
+  document.getElementById('bkType').value = result.type;
+  document.getElementById('bkLabel').value = result.label || '';
+  document.getElementById('bkStartDate').value = result.startDate || '';
+  document.getElementById('bkStartTime').value = result.startTime || '';
+  document.getElementById('bkEndDate').value = result.endDate || '';
+  document.getElementById('bkEndTime').value = result.endTime || '';
+  document.getElementById('bkLocation').value = result.location || '';
+  document.getElementById('bkConfirmation').value = result.confirmation || '';
+  document.getElementById('bkPrice').value = result.price || '';
+  showToast('Parsed! Review the fields below, then Add Booking.');
+}
+function parseBookingText(text){
+  const out = { type:'Other', label:'', startDate:'', startTime:'', endDate:'', endTime:'', location:'', confirmation:'', price:'' };
+  const isStay = /check[\s-]?in/i.test(text) && /check[\s-]?out/i.test(text);
+  const isFlight = /\bflight\b|boarding pass|departure|itinerary|gate\s*[:\-]?\s*\w/i.test(text) || /\b[A-Z]{3}\s*(→|->|-|to)\s*[A-Z]{3}\b/.test(text);
+  if(isStay) out.type = /airbnb|vrbo/i.test(text) ? 'Airbnb/VRBO' : 'Hotel';
+  else if(isFlight) out.type = 'Flight';
+
+  const dateRe = /\b(\d{4}-\d{2}-\d{2})\b|\b(\d{1,2}\/\d{1,2}\/\d{2,4})\b|\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2}(?:st|nd|rd|th)?,?\s*\d{4})\b/gi;
+  const dates = [];
+  let m;
+  while((m = dateRe.exec(text))){
+    const raw = m[1] || m[2] || m[3];
+    const d = normalizeDate(raw);
+    if(d) dates.push(d);
+  }
+  if(dates.length){ out.startDate = dates[0]; if(dates.length>1) out.endDate = dates[dates.length-1]; }
+
+  const timeRe = /\b(\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)?)\b/g;
+  const times = [];
+  while((m = timeRe.exec(text))) times.push(normalizeTime(m[1]));
+  if(times.length){ out.startTime = times[0]; if(times.length>1) out.endTime = times[1]; }
+
+  const confMatch = text.match(/confirmation\s*(?:#|number|code)?\s*[:\-]?\s*([A-Z0-9]{5,10})/i);
+  if(confMatch) out.confirmation = confMatch[1];
+
+  const priceMatch = text.match(/\$\s?[\d,]+(?:\.\d{2})?/);
+  if(priceMatch) out.price = priceMatch[0].replace(/\s/,'');
+
+  const airportMatch = text.match(/\b([A-Z]{3})\s*(?:→|->|-|to)\s*([A-Z]{3})\b/);
+  if(airportMatch) out.location = airportMatch[1] + ' → ' + airportMatch[2];
+  else{
+    const addrMatch = text.match(/\d{1,5}\s+[A-Za-z0-9.\s]+(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Dr|Drive|Ln|Lane)\b[^\n,]*/i);
+    if(addrMatch) out.location = addrMatch[0].trim();
+  }
+
+  const flightNoMatch = text.match(/\b([A-Z]{2}\s?\d{2,4})\b/);
+  if(out.type === 'Flight' && flightNoMatch) out.label = flightNoMatch[1];
+  else{
+    const firstLine = text.split('\n').map(l=>l.trim()).find(l=>l.length>2 && l.length<60);
+    if(firstLine) out.label = firstLine;
+  }
+  return out;
+}
+function normalizeDate(raw){
+  const d = new Date(raw);
+  if(isNaN(d)) return null;
+  return d.toISOString().slice(0,10);
+}
+function normalizeTime(raw){
+  const m = raw.match(/(\d{1,2}):(\d{2})\s?(AM|PM|am|pm)?/);
+  if(!m) return '';
+  let h = parseInt(m[1],10), mm = m[2];
+  const ap = (m[3]||'').toUpperCase();
+  if(ap === 'PM' && h < 12) h += 12;
+  if(ap === 'AM' && h === 12) h = 0;
+  return String(h).padStart(2,'0') + ':' + mm;
+}
+function addBooking(){
+  const member = currentMember();
+  const b = {
+    id: uid(),
+    type: document.getElementById('bkType').value,
+    label: document.getElementById('bkLabel').value.trim(),
+    startDate: document.getElementById('bkStartDate').value,
+    startTime: document.getElementById('bkStartTime').value,
+    endDate: document.getElementById('bkEndDate').value,
+    endTime: document.getElementById('bkEndTime').value,
+    location: document.getElementById('bkLocation').value.trim(),
+    confirmation: document.getElementById('bkConfirmation').value.trim(),
+    price: document.getElementById('bkPrice').value.trim()
+  };
+  if(!b.label && !b.location){ showToast('Add at least a title or location.'); return; }
+  member.bookings = member.bookings || [];
+  member.bookings.push(b);
+  member.updatedAt = Date.now();
+  saveTrip(currentTrip);
+  ['bookingPaste','bkLabel','bkStartDate','bkStartTime','bkEndDate','bkEndTime','bkLocation','bkConfirmation','bkPrice'].forEach(id=>document.getElementById(id).value='');
+  renderBookingList();
+  openRoom();
+  showToast('Booking added.');
+}
+function removeBooking(id){
+  const member = currentMember();
+  member.bookings = member.bookings.filter(b => b.id !== id);
+  member.updatedAt = Date.now();
+  saveTrip(currentTrip);
+  renderBookingList();
+}
+const TYPE_ICON = {Flight:'✈️', Hotel:'🏨', 'Airbnb/VRBO':'🏡', Other:'📌'};
+function renderBookingList(){
+  const member = currentMember();
+  const wrap = document.getElementById('bookingList');
+  if(!member || !member.bookings || !member.bookings.length){
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🧾</div><p>No bookings yet — paste a confirmation above or add one manually.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = member.bookings.map(b=>{
+    const dateStr = [b.startDate ? fmtDate(b.startDate) + (b.startTime? ' '+b.startTime:'') : '', b.endDate && b.endDate!==b.startDate ? '→ ' + fmtDate(b.endDate) + (b.endTime? ' '+b.endTime:'') : ''].filter(Boolean).join(' ');
+    return `<div class="booking-card">
+      <div class="booking-icon">${TYPE_ICON[b.type]||'📌'}</div>
+      <div class="booking-meta">
+        <div class="booking-title">${escHtml(b.label || b.type)}</div>
+        <div class="booking-detail">${escHtml(b.type)}${b.location? ' · ' + escHtml(b.location):''}${dateStr? '<br/>' + escHtml(dateStr):''}${b.price? ' · ' + escHtml(b.price):''}</div>
+      </div>
+      <button class="btn-remove" onclick="removeBooking('${b.id}')" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+}
+
+/* ---- Preferences ---- */
+function renderTagChips(){
+  document.getElementById('activityTags').innerHTML = ACTIVITY_TAGS.map(t=>`<div class="tag-chip" data-tag="${escHtml(t)}" onclick="toggleTag(this,'activities')">${escHtml(t)}</div>`).join('');
+  document.getElementById('foodTags').innerHTML = FOOD_TAGS.map(t=>`<div class="tag-chip food" data-tag="${escHtml(t)}" onclick="toggleTag(this,'food')">${escHtml(t)}</div>`).join('');
+}
+function loadPreferencesIntoUI(){
+  const member = currentMember();
+  if(!member) return;
+  document.querySelectorAll('#activityTags .tag-chip').forEach(el=>{
+    el.classList.toggle('active', member.preferences.activities.includes(el.dataset.tag));
+  });
+  document.querySelectorAll('#foodTags .tag-chip').forEach(el=>{
+    el.classList.toggle('active', member.preferences.food.includes(el.dataset.tag));
+  });
+  document.getElementById('prefNotes').value = member.preferences.notes || '';
+}
+function toggleTag(el, kind){ el.classList.toggle('active'); }
+function savePreferences(){
+  const member = currentMember();
+  member.preferences.activities = Array.from(document.querySelectorAll('#activityTags .tag-chip.active')).map(el=>el.dataset.tag);
+  member.preferences.food = Array.from(document.querySelectorAll('#foodTags .tag-chip.active')).map(el=>el.dataset.tag);
+  member.preferences.notes = document.getElementById('prefNotes').value.trim();
+  member.updatedAt = Date.now();
+  saveTrip(currentTrip);
+  renderMembers();
+  showToast('Preferences saved.');
+}
+
+/* ---- Plan generation ---- */
+function runGeneratePlan(){
+  savePreferences();
+  currentTrip.plan = generatePlan(currentTrip);
+  saveTrip(currentTrip);
+  renderPlanArea();
+  showToast('Plan generated!');
+}
+function generatePlan(trip){
+  const range = tripDateRange(trip);
+  let numDays = dayDiff(range.start, range.end) + 1;
+  if(numDays < 1) numDays = 1;
+  const capped = Math.min(numDays, 14);
+
+  const activityFreq = {}, foodFreq = {};
+  trip.members.forEach(m=>{
+    (m.preferences.activities||[]).forEach(tag=>{
+      activityFreq[tag] = activityFreq[tag] || [];
+      activityFreq[tag].push(m.name);
     });
-  </script>
+    (m.preferences.food||[]).forEach(tag=>{
+      foodFreq[tag] = foodFreq[tag] || [];
+      foodFreq[tag].push(m.name);
+    });
+  });
+  const activityTags = Object.keys(activityFreq).sort((a,b)=>activityFreq[b].length - activityFreq[a].length);
+  const foodTags = Object.keys(foodFreq).sort((a,b)=>foodFreq[b].length - foodFreq[a].length);
+
+  const arrivalDates = [], departureDates = [];
+  trip.members.forEach(m=>(m.bookings||[]).forEach(b=>{
+    if(b.type==='Flight'){
+      if(b.startDate) arrivalDates.push(b.startDate);
+      if(b.endDate) departureDates.push(b.endDate);
+    }
+  }));
+
+  let aPtr = 0, fPtr = 0;
+  function nextActivity(){
+    if(!activityTags.length) return {tag:null, text:'Free time — explore the area at your own pace.', who:[]};
+    const tag = activityTags[aPtr % activityTags.length]; aPtr++;
+    const opts = ACTIVITY_SUGGESTIONS[tag] || ['Enjoy some free time exploring.'];
+    const text = opts[aPtr % opts.length];
+    return {tag, text, who: activityFreq[tag]};
+  }
+  function nextFood(mealLabel){
+    if(!foodTags.length){
+      const opts = FOOD_SUGGESTIONS.default;
+      return {tag:null, text: 'For ' + mealLabel.toLowerCase() + ', ' + opts[fPtr++ % opts.length] + '.', who:[]};
+    }
+    const tag = foodTags[fPtr % foodTags.length]; fPtr++;
+    const opts = FOOD_SUGGESTIONS[tag] || FOOD_SUGGESTIONS.default;
+    const text = 'For ' + mealLabel.toLowerCase() + ', ' + opts[fPtr % opts.length] + '.';
+    return {tag, text, who: foodFreq[tag]};
+  }
+  function attrText(who){
+    if(!who || !who.length) return '';
+    const uniq = Array.from(new Set(who));
+    if(uniq.length >= trip.members.length && trip.members.length > 1) return "Everyone's into this";
+    if(uniq.length === 1) return uniq[0] + ' loves this';
+    return uniq.slice(0,3).join(' & ') + ' love this';
+  }
+
+  const days = [];
+  for(let i=0;i<capped;i++){
+    const date = addDays(range.start, i);
+    const isArrival = arrivalDates.includes(date) || i===0;
+    const isDeparture = departureDates.includes(date) || i===capped-1;
+    const label = (isArrival && i===0) ? 'Arrival Day' : (isDeparture && i===capped-1) ? 'Departure Day' : 'Day ' + (i+1);
+    const blocks = [];
+
+    if(i===0 && isArrival){
+      blocks.push({time:'Morning', text:'Travel day — flights and transfers to your destination.', attr:''});
+      const act = nextActivity();
+      blocks.push({time:'Afternoon', text:'Once you land, ' + (act.tag ? act.text.charAt(0).toLowerCase()+act.text.slice(1) : 'settle in and get oriented near your accommodation.'), attr: attrText(act.who)});
+    } else {
+      const act1 = nextActivity();
+      blocks.push({time:'Morning', text: act1.text, attr: attrText(act1.who)});
+      const lunch = nextFood('Lunch');
+      blocks.push({time:'Midday', text: lunch.text.charAt(0).toUpperCase()+lunch.text.slice(1), attr: attrText(lunch.who)});
+    }
+
+    if(i===capped-1 && isDeparture && capped>1){
+      blocks.push({time:'Afternoon', text:'Keep it easy — pack up and head to the airport/station for departure.', attr:''});
+    } else {
+      const act2 = nextActivity();
+      blocks.push({time:'Afternoon', text: act2.text, attr: attrText(act2.who)});
+      const dinner = nextFood('Dinner');
+      blocks.push({time:'Evening', text: dinner.text.charAt(0).toUpperCase()+dinner.text.slice(1), attr: attrText(dinner.who)});
+    }
+
+    days.push({date, label, blocks});
+  }
+  return { generatedAt: Date.now(), start: range.start, end: range.end, days };
+}
+function renderPlanArea(){
+  const trip = currentTrip;
+  const submittedCount = trip.members.filter(m => (m.bookings&&m.bookings.length) || (m.preferences && (m.preferences.activities.length||m.preferences.food.length))).length;
+  document.getElementById('planStatus').textContent = trip.mode==='solo'
+    ? 'Generate a personalized day-by-day plan from your bookings and preferences.'
+    : submittedCount + ' of ' + trip.members.length + ' member(s) have added bookings or preferences so far.';
+
+  const out = document.getElementById('planOutput');
+  if(!trip.plan){
+    out.innerHTML = `<div class="empty-state"><div class="empty-icon">🗺️</div><p>No plan yet — hit "Generate AI Plan" once bookings and preferences are in.</p></div>`;
+    return;
+  }
+  out.innerHTML = trip.plan.days.map(d=>`
+    <div class="day-card">
+      <div class="day-badge">${escHtml(d.label)}</div>
+      <div class="day-head"><div class="day-title">${escHtml(fmtDateShort(d.date))}</div></div>
+      ${d.blocks.map(b=>`
+        <div class="block-row">
+          <div class="block-time">${escHtml(b.time)}</div>
+          <div>
+            <div class="block-text">${escHtml(b.text)}</div>
+            ${b.attr ? `<div class="block-attr">${escHtml(b.attr)}</div>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+/* ---- Invite ---- */
+function copyInviteLink(){
+  currentTrip.updatedAt = Date.now();
+  saveTrip(currentTrip);
+  const payload = b64Encode(JSON.stringify(currentTrip));
+  const link = location.origin + location.pathname + '#t=' + encodeURIComponent(payload);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(()=>showToast('Invite link copied!')).catch(()=>fallbackCopy(link));
+  } else fallbackCopy(link);
+}
+function fallbackCopy(link){
+  window.prompt('Copy this invite link:', link);
+}
+
+/* ===================== Init ===================== */
+(function init(){
+  if(!handleIncomingHash()){
+    renderHomeTrips();
+    showView('home');
+  }
+})();
+
+/* A same-tab navigation to a new invite link only changes the URL fragment
+   (no full page reload), so re-run the join/merge logic on hash changes too. */
+window.addEventListener('hashchange', handleIncomingHash);
+</script>
 </body>
 </html>
