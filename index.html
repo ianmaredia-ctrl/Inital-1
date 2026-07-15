@@ -829,8 +829,8 @@ function parseBookingText(text){
   const airportMatch = text.match(/\b([A-Z]{3})\s*(?:→|->|-|to)\s*([A-Z]{3})\b/);
   if(airportMatch) out.location = airportMatch[1] + ' → ' + airportMatch[2];
   else{
-    const addrMatch = text.match(/\d{1,5}\s+[A-Za-z0-9.\s]+(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Dr|Drive|Ln|Lane)\b[^\n,]*/i);
-    if(addrMatch) out.location = addrMatch[0].trim();
+    const addrLine = text.split('\n').map(l=>l.trim()).find(l => /^\d{1,5}\s+[A-Za-z0-9.\s]+(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Dr|Drive|Ln|Lane)\b/i.test(l));
+    if(addrLine) out.location = addrLine.replace(/,\s*$/, '');
   }
 
   const flightNoMatch = text.match(/\b([A-Z]{2}\s?\d{2,4})\b/);
@@ -1006,12 +1006,14 @@ function generatePlan(trip){
   const days = [];
   for(let i=0;i<capped;i++){
     const date = addDays(range.start, i);
-    const isArrival = arrivalDates.includes(date) || i===0;
-    const isDeparture = departureDates.includes(date) || i===capped-1;
-    const label = (isArrival && i===0) ? 'Arrival Day' : (isDeparture && i===capped-1) ? 'Departure Day' : 'Day ' + (i+1);
+    const isFirstDay = i===0;
+    const isLastDay = i===capped-1;
+    const flightInToday = arrivalDates.includes(date);
+    const flightOutToday = departureDates.includes(date);
+    const label = isFirstDay ? 'Arrival Day' : isLastDay ? 'Departure Day' : 'Day ' + (i+1);
     const blocks = [];
 
-    if(i===0 && isArrival){
+    if(isFirstDay && flightInToday){
       blocks.push({time:'Morning', text:'Travel day — flights and transfers to your destination.', attr:''});
       const act = nextActivity();
       blocks.push({time:'Afternoon', text:'Once you land, ' + (act.tag ? act.text.charAt(0).toLowerCase()+act.text.slice(1) : 'settle in and get oriented near your accommodation.'), attr: attrText(act.who)});
@@ -1022,7 +1024,7 @@ function generatePlan(trip){
       blocks.push({time:'Midday', text: lunch.text.charAt(0).toUpperCase()+lunch.text.slice(1), attr: attrText(lunch.who)});
     }
 
-    if(i===capped-1 && isDeparture && capped>1){
+    if(isLastDay && flightOutToday && capped>1){
       blocks.push({time:'Afternoon', text:'Keep it easy — pack up and head to the airport/station for departure.', attr:''});
     } else {
       const act2 = nextActivity();
@@ -1033,7 +1035,7 @@ function generatePlan(trip){
 
     days.push({date, label, blocks});
   }
-  return { generatedAt: Date.now(), start: range.start, end: range.end, days };
+  return { generatedAt: Date.now(), start: range.start, end: range.end, truncated: numDays > capped, totalDays: numDays, days };
 }
 function renderPlanArea(){
   const trip = currentTrip;
@@ -1047,7 +1049,10 @@ function renderPlanArea(){
     out.innerHTML = `<div class="empty-state"><div class="empty-icon">🗺️</div><p>No plan yet — hit "Generate AI Plan" once bookings and preferences are in.</p></div>`;
     return;
   }
-  out.innerHTML = trip.plan.days.map(d=>`
+  const truncatedNote = trip.plan.truncated
+    ? `<div class="info-banner">Showing the first ${trip.plan.days.length} of ${trip.plan.totalDays} days — trips longer than that are trimmed to keep the plan readable.</div>`
+    : '';
+  out.innerHTML = truncatedNote + trip.plan.days.map(d=>`
     <div class="day-card">
       <div class="day-badge">${escHtml(d.label)}</div>
       <div class="day-head"><div class="day-title">${escHtml(fmtDateShort(d.date))}</div></div>
